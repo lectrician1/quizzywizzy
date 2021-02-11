@@ -16,7 +16,8 @@ class Home extends StatelessWidget {
         },
         body: SafeArea(
           child: Scrollbar(
-            child: Center(
+            child: Align(
+                alignment: Alignment.topCenter,
                 child: Container(
               constraints: BoxConstraints(maxWidth: 600),
               child: GridView(
@@ -28,7 +29,13 @@ class Home extends StatelessWidget {
                   childAspectRatio: 1.0,
                   //maxCrossAxisCount: 5,
                 ),
-                children: List.generate(20, (index) => Course(text: "hi")),
+                children: List.generate(40, (index) => SelectionCell(
+                  text: "hi", 
+                  icon: Icons.ac_unit, 
+                  onTap: () {
+                    //Navigator.pushNamed(context, "/");
+                  }
+                )),
               ),
             )),
           ),
@@ -38,20 +45,49 @@ class Home extends StatelessWidget {
   }
 }
 
-class Course extends StatelessWidget {
-  String _text;
-  Course({String text}) {
-    this._text = text;
-  }
+class SelectionCell extends StatelessWidget {
+  final String _text;
+  final Function _onTap;
+  final IconData _icon;
+  SelectionCell({String text, IconData icon, Function onTap}) :
+    this._text = text,
+    this._icon = icon,
+    this._onTap = onTap;
+  
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: () {
-        Navigator.pushNamed(context, "/");
-      },
-      child: Container(
+    assert(debugCheckHasMaterial(context));
+    return Card(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15.0),
+      ),
+      child: Material(
         color: Colors.amber,
-        child: Text(_text),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15.0),
+        ),
+        child: InkWell(
+          splashColor: Colors.blue,
+          onTap: _onTap,
+          child: Column(
+            children: [
+              Expanded(
+                flex: 3,
+                child: Center(
+                  child: Icon(
+                    _icon,
+                  ),
+                ), 
+              ),
+              Expanded(
+                flex: 1,
+                child: Center(
+                  child: Text(_text),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
