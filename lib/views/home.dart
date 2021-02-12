@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-//import 'package:flutter/rendering.dart';
 
-class Home extends StatelessWidget {
+class HomeView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -19,25 +18,33 @@ class Home extends StatelessWidget {
             child: Align(
                 alignment: Alignment.topCenter,
                 child: Container(
-              constraints: BoxConstraints(maxWidth: 600),
-              child: GridView(
-                shrinkWrap: true,
-                gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-                  maxCrossAxisExtent: 150,
-                  crossAxisSpacing: 10,
-                  mainAxisSpacing: 10,
-                  childAspectRatio: 1.0,
-                  //maxCrossAxisCount: 5,
-                ),
-                children: List.generate(40, (index) => SelectionCell(
-                  text: "hi", 
-                  icon: Icons.ac_unit, 
-                  onTap: () {
-                    //Navigator.pushNamed(context, "/");
-                  }
+                  constraints: BoxConstraints(maxWidth: 600),
+                  child: GridView(
+                    shrinkWrap: true,
+                    gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                      maxCrossAxisExtent: 150,
+                      crossAxisSpacing: 10,
+                      mainAxisSpacing: 10,
+                      childAspectRatio: 1.0,
+                      //maxCrossAxisCount: 5,
+                    ),
+                    children: List.generate(
+                        40,
+                        (index) => SelectionCell(
+                            text: "hi",
+                            icon: Icons.ac_unit,
+                            onTap: () {
+                              Navigator.of(context).pushNamed('/courses/$index');
+                              /*
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => CourseView(),
+                                ),
+                              );*/
+                            })),
+                  ),
                 )),
-              ),
-            )),
           ),
         ),
       ),
@@ -49,11 +56,11 @@ class SelectionCell extends StatelessWidget {
   final String _text;
   final Function _onTap;
   final IconData _icon;
-  SelectionCell({String text, IconData icon, Function onTap}) :
-    this._text = text,
-    this._icon = icon,
-    this._onTap = onTap;
-  
+  SelectionCell({String text, IconData icon, Function onTap})
+      : this._text = text,
+        this._icon = icon,
+        this._onTap = onTap;
+
   @override
   Widget build(BuildContext context) {
     assert(debugCheckHasMaterial(context));
@@ -77,7 +84,7 @@ class SelectionCell extends StatelessWidget {
                   child: Icon(
                     _icon,
                   ),
-                ), 
+                ),
               ),
               Expanded(
                 flex: 1,
