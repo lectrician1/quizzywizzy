@@ -16,35 +16,47 @@ class HomeView extends StatelessWidget {
         body: SafeArea(
           child: Scrollbar(
             child: Align(
-                alignment: Alignment.topCenter,
-                child: Container(
-                  constraints: BoxConstraints(maxWidth: 600),
-                  child: GridView(
-                    shrinkWrap: true,
-                    gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-                      maxCrossAxisExtent: 150,
-                      crossAxisSpacing: 10,
-                      mainAxisSpacing: 10,
-                      childAspectRatio: 1.0,
-                      //maxCrossAxisCount: 5,
+              alignment: Alignment.topCenter,
+              child: Container(
+                constraints: BoxConstraints(maxWidth: 600),
+                child: ListView(
+                  children: [
+                    Center(child: Container(
+                      padding: EdgeInsets.symmetric(vertical: 40),
+                      child: Text("Select a course",
+                      style: TextStyle(
+                        fontSize: 40,
+                      )),
+                    )),
+                    GridView(
+                      shrinkWrap: true,
+                      gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                        maxCrossAxisExtent: 150,
+                        crossAxisSpacing: 10,
+                        mainAxisSpacing: 10,
+                        childAspectRatio: 1.0,
+                        //maxCrossAxisCount: 5,
+                      ),
+                      children: List.generate(
+                          40,
+                          (index) => SelectionCell(
+                              text: "hi",
+                              icon: Icons.ac_unit,
+                              onTap: () {
+                                Navigator.of(context).pushNamed('/courses/$index');
+                                /*
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => CourseView(),
+                                  ),
+                                );*/
+                              })),
                     ),
-                    children: List.generate(
-                        40,
-                        (index) => SelectionCell(
-                            text: "hi",
-                            icon: Icons.ac_unit,
-                            onTap: () {
-                              Navigator.of(context).pushNamed('/courses/$index');
-                              /*
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => CourseView(),
-                                ),
-                              );*/
-                            })),
-                  ),
-                )),
+                  ],
+                ),
+              ),
+            ),
           ),
         ),
       ),
