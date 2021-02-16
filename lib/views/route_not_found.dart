@@ -1,21 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:quizzywizzy/views/widgets/navigation_bar.dart';
 
 class RouteNotFoundView extends StatelessWidget {
-  final String name;
-  const RouteNotFoundView({Key key, this.name}) : super(key: key);
+  final String _name;
+  const RouteNotFoundView({String name}) : _name = name;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: NestedScrollView(
-      headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
-    return <Widget>[
-      SliverAppBar(
-        title: Text("$name cannot be found"),
-        floating: true,
-      ),
-    ];
-      },
-      body: Container(),
-    ));
+      body: NavigationBar(
+        title: "$_name cannot be found",
+        body: Container(),
+      )
+    );
   }
 }

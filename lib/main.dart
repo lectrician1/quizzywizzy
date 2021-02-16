@@ -37,28 +37,26 @@ class QuizzyWizzyApp extends StatelessWidget {
   final Future<FirebaseApp> _fbApp = Firebase.initializeApp();
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'QuizzyWizzy',
-        home: FutureBuilder(
-          future: _fbApp,
-          builder: (context, snapshot) {
-            if (snapshot.hasError) {
-              print('You have an error! ${snapshot.error.toString}');
-              return Text("Something went wrong!");
-            } else if (snapshot.hasData) {
-              return MaterialApp(
-                title: 'QuizzyWizzy',
-                onGenerateRoute: (settings) => FluroRouter.appRouter
-                    .matchRoute(context, settings.name, routeSettings: settings)
-                    .route,
-                initialRoute: '/courses',
-              );
-            } else {
-              return Center(
-                child: CircularProgressIndicator(),
-              );
-            }
-          },
-        ));
+    return FutureBuilder(
+      future: _fbApp,
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          print('You have an error! ${snapshot.error.toString}');
+          return Text("Something went wrong! ${snapshot.error.toString}");
+        } else if (snapshot.hasData) {
+          return MaterialApp(
+            title: 'QuizzyWizzy',
+            onGenerateRoute: (settings) => FluroRouter.appRouter
+                .matchRoute(context, settings.name, routeSettings: settings)
+                .route,
+            initialRoute: '/courses',
+          );
+        } else {
+          return Center(
+            child: CircularProgressIndicator(),
+          );
+        }
+      },
+    );
   }
 }

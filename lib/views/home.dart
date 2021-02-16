@@ -1,18 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:quizzywizzy/views/widgets/navigation_bar.dart';
+import 'package:quizzywizzy/views/widgets/selection_cell.dart';
 
 class HomeView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: NestedScrollView(
-        headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
-          return <Widget>[
-            SliverAppBar(
-              title: Text("QuizzyWizzy"),
-              floating: true,
-            ),
-          ];
-        },
+      body: NavigationBar(
+        title: "QuizzyWizzy",
         body: SafeArea(
           child: Scrollbar(
             child: Align(
@@ -21,12 +16,13 @@ class HomeView extends StatelessWidget {
                 constraints: BoxConstraints(maxWidth: 600),
                 child: ListView(
                   children: [
-                    Center(child: Container(
+                    Center(
+                        child: Container(
                       padding: EdgeInsets.symmetric(vertical: 40),
                       child: Text("Select a course",
-                      style: TextStyle(
-                        fontSize: 40,
-                      )),
+                          style: TextStyle(
+                            fontSize: 40,
+                          )),
                     )),
                     GridView(
                       shrinkWrap: true,
@@ -43,7 +39,8 @@ class HomeView extends StatelessWidget {
                               text: "hi",
                               icon: Icons.ac_unit,
                               onTap: () {
-                                Navigator.of(context).pushNamed('/courses/$index');
+                                Navigator.of(context)
+                                    .pushNamed('/courses/$index');
                                 /*
                                 Navigator.push(
                                   context,
@@ -64,50 +61,3 @@ class HomeView extends StatelessWidget {
   }
 }
 
-class SelectionCell extends StatelessWidget {
-  final String _text;
-  final Function _onTap;
-  final IconData _icon;
-  SelectionCell({String text, IconData icon, Function onTap})
-      : this._text = text,
-        this._icon = icon,
-        this._onTap = onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    assert(debugCheckHasMaterial(context));
-    return Card(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15.0),
-      ),
-      child: Material(
-        color: Colors.amber,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15.0),
-        ),
-        child: InkWell(
-          splashColor: Colors.blue,
-          onTap: _onTap,
-          child: Column(
-            children: [
-              Expanded(
-                flex: 3,
-                child: Center(
-                  child: Icon(
-                    _icon,
-                  ),
-                ),
-              ),
-              Expanded(
-                flex: 1,
-                child: Center(
-                  child: Text(_text),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
