@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fluro/fluro.dart';
+import 'package:quizzywizzy/views/initial.dart';
 import 'views/home.dart';
 import 'views/course.dart';
 import 'views/route_not_found.dart';
@@ -12,6 +13,12 @@ Future<void> main() async {
         RouteNotFoundView(name: Uri.base.toString()),
   );
   FluroRouter.appRouter
+    ..define(
+      '/',
+      handler: Handler(
+        handlerFunc: (context, params) => InitialView(),
+      ),
+    )
     ..define(
       '/courses',
       handler: Handler(
@@ -46,10 +53,7 @@ class QuizzyWizzyApp extends StatelessWidget {
         } else if (snapshot.hasData) {
           return MaterialApp(
             title: 'QuizzyWizzy',
-            onGenerateRoute: (settings) => FluroRouter.appRouter
-                .matchRoute(context, settings.name, routeSettings: settings)
-                .route,
-            initialRoute: '/courses',
+            onGenerateRoute: (settings) => FluroRouter.appRouter.generator(settings),
           );
         } else {
           return Center(

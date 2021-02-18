@@ -25,7 +25,7 @@ class NavigationBar extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                       IconButton(onPressed: () {
-                        Navigator.pop(context);
+                        Navigator.maybePop(context);
                       }, icon: Icon(Icons.arrow_back))
                     ]),
                   ),
