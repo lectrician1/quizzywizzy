@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:quizzywizzy/views/widgets/navigation_bar.dart';
+import 'package:quizzywizzy/constants.dart' as Constants;
 
 class CourseView extends StatelessWidget {
   final String _course;
@@ -9,7 +10,8 @@ class CourseView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: NavigationBar(
-        title: "QuizzyWizzy$_course",
+        backButtonRoute: Constants.getHomeRoute(),
+        title: Constants.title + "$_course",
         body: Container(),
       ),
     );

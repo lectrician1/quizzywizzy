@@ -8,6 +8,8 @@ class RouteNotFoundView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: NavigationBar(
+        backButtonRoute: "",
+        backButtonShouldPop: true,
         title: "$_name cannot be found",
         body: Container(),
       )

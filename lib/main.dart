@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fluro/fluro.dart';
+import 'package:quizzywizzy/constants.dart' as Constants;
 import 'package:quizzywizzy/views/initial.dart';
 import 'views/home.dart';
 import 'views/course.dart';
@@ -15,18 +16,21 @@ Future<void> main() async {
   FluroRouter.appRouter
     ..define(
       '/',
+      transitionType: TransitionType.fadeIn,
       handler: Handler(
-        handlerFunc: (context, params) => InitialView(),
+        handlerFunc: (context, params) => InitialView().redirect(context),
       ),
     )
     ..define(
-      '/courses',
+      Constants.getHomeRoute(),
+      transitionType: TransitionType.fadeIn,
       handler: Handler(
         handlerFunc: (context, params) => HomeView(),
       ),
     )
     ..define(
-      'courses/:course',
+      Constants.getCourseRoute(":course"),
+      transitionType: TransitionType.fadeIn,
       handler: Handler(
         handlerFunc: (context, params) {
           final String course = params['course'][0];
@@ -52,7 +56,7 @@ class QuizzyWizzyApp extends StatelessWidget {
           return Text("Something went wrong! ${snapshot.error.toString}");
         } else if (snapshot.hasData) {
           return MaterialApp(
-            title: 'QuizzyWizzy',
+            title: Constants.title,
             onGenerateRoute: (settings) => FluroRouter.appRouter.generator(settings),
           );
         } else {

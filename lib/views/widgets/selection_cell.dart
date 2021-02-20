@@ -4,7 +4,7 @@ class SelectionCell extends StatelessWidget {
   final String _text;
   final Function _onTap;
   final IconData _icon;
-  SelectionCell({String text, IconData icon, Function onTap})
+  SelectionCell({String text, IconData icon, @required Function onTap})
       : this._text = text,
         this._icon = icon,
         this._onTap = onTap;

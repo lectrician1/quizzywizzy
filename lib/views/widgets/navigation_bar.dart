@@ -3,9 +3,13 @@ import 'package:flutter/material.dart';
 class NavigationBar extends StatelessWidget {
   final Widget _body;
   final String _title;
-  NavigationBar({String title, Widget body})
+  final String _backButtonRoute;
+  final bool _backButtonShouldPop;
+  NavigationBar({@required String title, @required String backButtonRoute, @required Widget body, bool backButtonShouldPop = false})
       : _body = body,
-        _title = title;
+        _backButtonRoute = backButtonRoute,
+        _title = title,
+        _backButtonShouldPop = backButtonShouldPop;
 
   @override
   Widget build(BuildContext context) {
@@ -24,9 +28,12 @@ class NavigationBar extends StatelessWidget {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                      IconButton(onPressed: () {
-                        Navigator.maybePop(context);
-                      }, icon: Icon(Icons.arrow_back))
+                      (_backButtonShouldPop & Navigator.canPop(context)) ? IconButton(onPressed: () {
+                        Navigator.pop(context);
+                      }, icon: Icon(Icons.arrow_back)) :
+                      (_backButtonRoute != "" ? IconButton(onPressed: () {
+                        Navigator.of(context).pushReplacementNamed(_backButtonRoute);
+                      }, icon: Icon(Icons.arrow_back)) : Container())
                     ]),
                   ),
                   Align(

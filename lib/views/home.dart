@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:quizzywizzy/views/widgets/navigation_bar.dart';
 import 'package:quizzywizzy/views/widgets/selection_cell.dart';
+import 'package:quizzywizzy/constants.dart' as Constants;
 
 class HomeView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: NavigationBar(
-        title: "QuizzyWizzy",
+        backButtonRoute: "",
+        title: Constants.title,
         body: SafeArea(
           child: Scrollbar(
             child: Align(
@@ -39,15 +41,7 @@ class HomeView extends StatelessWidget {
                               text: "hi",
                               icon: Icons.ac_unit,
                               onTap: () {
-                                Navigator.of(context)
-                                    .pushNamed('/courses/$index');
-                                /*
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => CourseView(),
-                                  ),
-                                );*/
+                                Navigator.of(context).pushReplacementNamed(Constants.getCourseRoute(index));
                               })),
                     ),
                   ],
@@ -60,4 +54,3 @@ class HomeView extends StatelessWidget {
     );
   }
 }
-
