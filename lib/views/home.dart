@@ -9,6 +9,7 @@ class HomeView extends StatelessWidget {
     return Scaffold(
       body: NavigationBar(
         backButtonRoute: "",
+        backButtonType: 2,
         title: Constants.title,
         body: SafeArea(
           child: Scrollbar(
