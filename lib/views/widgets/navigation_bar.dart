@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:provider/provider.dart';
+import 'package:quizzywizzy/services/auth_service.dart' as AuthService;
+import 'package:quizzywizzy/views/widgets/sign_in_dialog.dart';
 
 class NavigationBar extends StatelessWidget {
   final Widget _body;
@@ -36,14 +40,7 @@ class NavigationBar extends StatelessWidget {
                   Align(
                     alignment: Alignment.centerRight,
                     child: Row(mainAxisSize: MainAxisSize.min, children: [
-                      OutlinedButton(
-                          onPressed: () {},
-                          child: Text("Sign In"),
-                          style: ButtonStyle(
-                              overlayColor: MaterialStateProperty.all<Color>(
-                                  Colors.black),
-                              foregroundColor: MaterialStateProperty.all<Color>(
-                                  Colors.white))),
+                      _getProfile(context),
                     ]),
                   ),
                   Text(_title),
@@ -57,6 +54,43 @@ class NavigationBar extends StatelessWidget {
       },
       body: _body,
     );
+  }
+
+  Widget _getProfile(BuildContext context) {
+    final GoogleSignInAccount googleUser =
+        Provider.of<GoogleSignInAccount>(context);
+    if (googleUser == null)
+      return OutlinedButton(
+          onPressed: () {
+            showDialog(context: context, builder: (context) => SignInDialog(), barrierDismissible: false);
+            //AuthService.signInWithGoogle();
+          },
+          child: Text("Sign In"),
+          style: ButtonStyle(
+              overlayColor: MaterialStateProperty.all<Color>(Colors.black),
+              foregroundColor: MaterialStateProperty.all<Color>(Colors.white)));
+    return PopupMenuButton(
+        onSelected: (value) {
+          switch (value) {
+            case "Sign Out":
+              AuthService.signOutWithGoogle();
+              break;
+          }
+        },
+        itemBuilder: (context) => [
+              PopupMenuItem(
+                enabled: false,
+                child: Text(googleUser.displayName,
+                  style: TextStyle(
+                    color: Colors.black,
+                  ),),
+              ),
+              PopupMenuItem(
+                value: "Sign Out",
+                child: Text("Sign Out"),
+              ),
+            ],
+        child: GoogleUserCircleAvatar(identity: googleUser));
   }
 
   Widget _getBackButton(BuildContext context, int backButtonType) {

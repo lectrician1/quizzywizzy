@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:fluro/fluro.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:provider/provider.dart';
 import 'package:quizzywizzy/constants.dart' as Constants;
+import 'package:quizzywizzy/services/auth_service.dart' as AuthService;
 import 'package:quizzywizzy/views/initial.dart';
+import 'models/app_user.dart';
 import 'views/home.dart';
 import 'views/course.dart';
 import 'views/route_not_found.dart';
@@ -45,26 +49,44 @@ Future<void> main() async {
 }
 
 class QuizzyWizzyApp extends StatelessWidget {
-  final Future<FirebaseApp> _fbApp = Firebase.initializeApp();
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-      future: _fbApp,
-      builder: (context, snapshot) {
-        if (snapshot.hasError) {
-          print('You have an error! ${snapshot.error.toString}');
-          return Text("Something went wrong! ${snapshot.error.toString}");
-        } else if (snapshot.hasData) {
-          return MaterialApp(
-            title: Constants.title,
-            onGenerateRoute: (settings) => FluroRouter.appRouter.generator(settings),
-          );
-        } else {
-          return Center(
-            child: CircularProgressIndicator(),
-          );
-        }
-      },
-    );
+    return MultiProvider(
+        providers: [
+          FutureProvider<FirebaseApp>(
+            create: (context) => Firebase.initializeApp(),
+            catchError: (context, error) {
+              print("Error in loading Firebase: $error");
+              return null;
+            },
+          ),
+          FutureProvider<GoogleSignInAccount>(
+              create: (context) {
+                return AuthService.googleSignIn.signInSilently();
+              },
+              catchError: (context, error) {
+                print("Error in Google Auto Sign In: $error");
+                return null;
+              }),
+          StreamProvider<GoogleSignInAccount>.value(
+            value: AuthService.googleSignIn.onCurrentUserChanged,
+            catchError: (context, error) {
+              print("Error in Google Stream: $error");
+              return null;
+            },
+          ),
+          StreamProvider<AppUser>.value(
+            value: AuthService.appUserStream,
+            catchError: (context, error) {
+              print("Error in Auth Service Stream: $error");
+              return null;
+            },
+          )
+        ],
+        child: MaterialApp(
+          title: Constants.title,
+          onGenerateRoute: (settings) =>
+              FluroRouter.appRouter.generator(settings),
+        ));
   }
 }
