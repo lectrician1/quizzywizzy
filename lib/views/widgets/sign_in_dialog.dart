@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:quizzywizzy/views/widgets/custom_snack_bars.dart';
 import 'package:transparent_image/transparent_image.dart';
 import 'package:quizzywizzy/services/auth_service.dart' as AuthService;
+import 'package:quizzywizzy/constants.dart' as Constants;
 
 class SignInDialog extends StatefulWidget {
   @override
@@ -22,40 +24,64 @@ class SignInDialogDomain extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SignInDialogWindow(
+        top: Stack(
+          children: [
+            Align(
+              alignment: Alignment.center,
+              child: Column(
+                children: [
+                  Spacer(flex: 1),
+                  Expanded(
+                    child: FittedBox(
+                        fit: BoxFit.fitHeight,
+                        child: Text("Sign In to ${Constants.title}")),
+                    flex: 2,
+                  ),
+                  Spacer(flex: 1),
+                ],
+              ),
+            ),
+          ],
+        ),
         body: Column(
-      children: [
-        Spacer(flex: 1),
-        Expanded(
-          flex: 5,
-          child: FadeInImage.memoryNetwork(
-              fit: BoxFit.fitHeight,
-              placeholder: kTransparentImage,
-              image: "assets/images/naperville203.png"),
-        ),
-        Spacer(flex: 1),
-        Expanded(
-          child: Text(
-            "Sign in with your Naperville 203 Google account",
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 30),
-          ),
-          flex: 5,
-        ),
-        Expanded(
-          child: Text(
-            "I have a whitelisted email",
-            textAlign: TextAlign.center,
-          ),
-          flex: 5,
-        ),
-      ],
-    ));
+          children: [
+            Spacer(flex: 1),
+            Expanded(
+              flex: 5,
+              child: FadeInImage.memoryNetwork(
+                  fit: BoxFit.fitHeight,
+                  placeholder: kTransparentImage,
+                  image: "assets/images/naperville203.png"),
+            ),
+            Spacer(flex: 1),
+            Expanded(
+              child: FittedBox(
+                fit: BoxFit.fitHeight,
+                child: Text(
+                  "Sign in with your\nNaperville 203\nGoogle account",
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              flex: 7,
+            ),
+            Expanded(
+              child: Center(
+                child: Text(
+                  "I have a whitelisted email | Privacy Policy",
+                  style: TextStyle(fontSize: 10),
+                ),
+              ),
+              flex: 3,
+            ),
+          ],
+        ));
   }
 }
 
 class SignInDialogWindow extends StatelessWidget {
+  final Widget top;
   final Widget body;
-  SignInDialogWindow({@required this.body});
+  SignInDialogWindow({@required this.top, @required this.body});
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -95,9 +121,10 @@ class SignInDialogWindow extends StatelessWidget {
                                       Navigator.of(context).pop();
                                     },
                                   )
-                                : Container(),
+                                : Image.memory(kTransparentImage),
                           ),
                         ),
+                        top,
                       ],
                     ),
                   ),
@@ -164,9 +191,13 @@ class _SignInDialogButtonState extends State<SignInDialogButton>
         : InkWell(
             onTap: () {
               provider.isLoading = true;
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                  content: Text("Signing in through Google Sign In popup..."),
-                  duration: Duration(seconds: 3)));
+              ScaffoldMessenger.of(context)
+                ..removeCurrentSnackBar()
+                ..showSnackBar(SnackBar(
+                    content: Text(
+                        "Signing in through Google Sign In OAuth consent screen..."),
+                    behavior: SnackBarBehavior.floating,
+                    duration: Duration(seconds: 3)));
               AuthService.signInWithGoogle().then((user) {
                 provider.isLoading = false;
                 Navigator.of(context).pop();
@@ -174,19 +205,10 @@ class _SignInDialogButtonState extends State<SignInDialogButton>
                 provider.isLoading = false;
                 print(e.code);
                 print(e.message);
-                switch (e.code) {
-                  case "popup_closed_by_user":
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                        content: Text(
-                            "Unable to complete sign in process: Google Sign In popup closed by the user"),
-                        duration: Duration(seconds: 5)));
-                    break;
-                  default:
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                        content: Text(
-                            "Unable to complete sign in process: ${e.code}"),
-                        duration: Duration(seconds: 5)));
-                }
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context)
+                  ..removeCurrentSnackBar()
+                  ..showSnackBar(InfoSnackBar(text: "Unable to complete sign in process: ${AuthService.getMessageFromGoogleSignInErrorCode(e)}"));
               });
             },
             child: SignInButtonTemplate(
