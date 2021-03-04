@@ -4,6 +4,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
 import 'package:quizzywizzy/constants.dart' as Constants;
 import 'package:quizzywizzy/services/auth_service.dart' as AuthService;
+import 'package:quizzywizzy/services/configure_nonweb.dart' if (dart.library.html) 'package:quizzywizzy/services/configure_web.dart';
 import 'package:quizzywizzy/views/initial.dart';
 import 'models/app_user.dart';
 import 'views/home.dart';
