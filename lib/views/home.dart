@@ -5,11 +5,13 @@ import 'package:quizzywizzy/constants.dart' as Constants;
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class HomeView extends StatelessWidget {
+  final List<String> hierarchy;
+  HomeView(this.hierarchy);
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: NavigationBar(
-        backButtonRoute: "",
+        backButtonRoute: Constants.getRouteBackButton(hierarchy),
         backButtonType: 2,
         title: Constants.title,
         body: SafeArea(
@@ -19,8 +21,7 @@ class HomeView extends StatelessWidget {
               child: Container(
                 constraints: BoxConstraints(maxWidth: 600),
                 child: FutureBuilder<QuerySnapshot>(
-                    future: FirebaseFirestore.instance
-                        .collection('courses').get(),
+                    future: getCollection(),
                     builder: (BuildContext context,
                         AsyncSnapshot<QuerySnapshot> snapshot) {
                       if (snapshot.hasData) {
@@ -64,5 +65,14 @@ class HomeView extends StatelessWidget {
         ),
       ),
     );
+  }
+  Future<QuerySnapshot> getCollection() async {
+    CollectionReference reference = FirebaseFirestore.instance.collection(Constants.mainHierarchy[0]);
+    for (int i=0; i<hierarchy.length-1; i++) {
+      QuerySnapshot query = await reference.where("name", isEqualTo: this.hierarchy[i]).limit(1).get();
+      if (query.docs.length == 0) return null;
+      reference = query.docs[0].reference.collection(Constants.mainHierarchy[i+1]);
+    }
+    return await reference.get();
   }
 }
