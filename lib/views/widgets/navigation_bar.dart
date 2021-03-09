@@ -1,24 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
 import 'package:quizzywizzy/services/auth_service.dart' as AuthService;
+import 'package:quizzywizzy/services/router.dart';
 import 'package:quizzywizzy/views/widgets/custom_snack_bars.dart';
 import 'package:quizzywizzy/views/widgets/sign_in_dialog.dart';
 
 class NavigationBar extends StatelessWidget {
   final Widget _body;
   final String _title;
-  final String _backButtonRoute;
-  final int _backButtonType;
+  final AppRouterDelegate delegate = Get.find<AppRouterDelegate>();
   NavigationBar(
       {@required String title,
-      @required String backButtonRoute,
       @required Widget body,
       int backButtonType = 0})
       : _body = body,
-        _backButtonRoute = backButtonRoute,
-        _title = title,
-        _backButtonType = backButtonType;
+        _title = title;
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +33,7 @@ class NavigationBar extends StatelessWidget {
                   Align(
                     alignment: Alignment.centerLeft,
                     child: Row(mainAxisSize: MainAxisSize.min, children: [
-                      _getBackButton(context, _backButtonType),
+                      _getBackButton(context),
                     ]),
                   ),
                   Align(
@@ -63,7 +61,10 @@ class NavigationBar extends StatelessWidget {
     if (googleUser == null)
       return OutlinedButton(
           onPressed: () {
-            showDialog(context: context, builder: (context) => SignInDialog(), barrierDismissible: false);
+            showDialog(
+                context: context,
+                builder: (context) => SignInDialog(),
+                barrierDismissible: false);
             //AuthService.signInWithGoogle();
           },
           child: Text("Sign In"),
@@ -75,7 +76,8 @@ class NavigationBar extends StatelessWidget {
           switch (value) {
             case "Sign Out":
               AuthService.signOutWithGoogle().catchError((e) {
-                InfoSnackBar(text: AuthService.getMessageFromSignOutErrorCode(e));
+                InfoSnackBar(
+                    text: AuthService.getMessageFromSignOutErrorCode(e));
               });
               break;
           }
@@ -83,10 +85,12 @@ class NavigationBar extends StatelessWidget {
         itemBuilder: (context) => [
               PopupMenuItem(
                 enabled: false,
-                child: Text(googleUser.displayName,
+                child: Text(
+                  googleUser.displayName,
                   style: TextStyle(
                     color: Colors.black,
-                  ),),
+                  ),
+                ),
               ),
               PopupMenuItem(
                 value: "Sign Out",
@@ -96,24 +100,13 @@ class NavigationBar extends StatelessWidget {
         child: GoogleUserCircleAvatar(identity: googleUser));
   }
 
-  Widget _getBackButton(BuildContext context, int backButtonType) {
-    switch (backButtonType) {
-      case 1:
-        return Navigator.of(context).canPop()
-            ? IconButton(
-                icon: Icon(Icons.arrow_back),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                })
-            : Container();
-      case 2:
-        return Container();
-      default:
-        return IconButton(
+  Widget _getBackButton(BuildContext context) {
+    return delegate.canPop()
+        ? IconButton(
             icon: Icon(Icons.arrow_back),
             onPressed: () {
-              Navigator.of(context).pushReplacementNamed(_backButtonRoute);
-            });
-    }
+              delegate.pop();
+            })
+        : Container();
   }
 }

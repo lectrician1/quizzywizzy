@@ -1,9 +1,7 @@
 const String title = "QuizzyWizzy";
 
 const List<String> domains = ["stu.naperville203.org"];
-const String homeRouteName = "home";
+const String appHomeRouteName = "app";
+const String webHomeRouteNamePseudo = "web";
 const String gettingStartedRouteName = "getting-started";
-
-String getHomeRoute() => "/$homeRouteName";
-String getGettingStartedRoute() => "/$gettingStartedRouteName";
-String getCourseRoute(dynamic course) => getHomeRoute() + "/$course";
+const List<String> mainHierarchy = ["courses", "units", "topics", "subtopics"];
