@@ -10,9 +10,7 @@ class AppHomeView extends StatelessWidget {
   final List<String> appHierarchy;
   final QuerySnapshot query;
   final AppRouterDelegate delegate = Get.find<AppRouterDelegate>();
-  AppHomeView(
-      {@required this.appHierarchy,
-      @required this.query});
+  AppHomeView({@required this.appHierarchy, @required this.query});
 
   Widget build(BuildContext context) {
     return Scaffold(

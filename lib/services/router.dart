@@ -5,6 +5,7 @@ import 'package:quizzywizzy/services/routing_constants.dart';
 import 'package:quizzywizzy/views/app_home.dart';
 import 'package:quizzywizzy/views/home.dart';
 import 'package:quizzywizzy/views/loading.dart';
+import 'package:quizzywizzy/views/questions.dart';
 import 'package:quizzywizzy/views/route_not_found.dart';
 
 class AppStack extends ChangeNotifier {
@@ -106,6 +107,9 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
                 FirebaseFirestore.instance.collection(collectionNames[0]);
           visitedQueries[key] = await visitedCollections[key].get();
           mode = RouteMode.app;
+        } 
+        else if (requested.hierarchy[i] == "questions") {
+          
         } else {
           switch (mode) {
             case RouteMode.web:
