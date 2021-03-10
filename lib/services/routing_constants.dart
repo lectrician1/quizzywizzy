@@ -19,8 +19,14 @@ String getRoute(List<String> hierarchy, String home) {
   return route;
 }
 
+String appendRoute(String pathSegment, String route) {
+  return "$route/$pathSegment";
+}
+
 String getAppRoute(List<String> hierarchy) => getRoute(hierarchy, "");
 String getWebRoute(List<String> hierarchy) => getRoute(hierarchy.sublist(1), "");
 List<String> get collectionNames => Constants.mainHierarchy;
 const String appPrefix = Constants.appHomeRouteName;
 const String webPrefix = Constants.webHomeRouteNamePseudo;
+
+const String urlName = Constants.docUrlName;

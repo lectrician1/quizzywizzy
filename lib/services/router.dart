@@ -32,18 +32,16 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
   AppStack requested;
   AppStack curr;
   AppStatus status;
-  HashMap<String, QuerySnapshot> visitedQueries;
-  HashMap<String, QuerySnapshot> visitedUrlNameQueries;
+  HashMap<String, List<Map<String, dynamic>>> visitedQueryData;
   HashMap<String, CollectionReference> visitedCollections;
   AppStack get currentConfiguration => requested;
 
   AppRouterDelegate()
       : navigatorKey = GlobalKey<NavigatorState>(),
-        requested = AppStack(hierarchy: ["web"]),
-        curr = AppStack(hierarchy: ["web"]),
+        requested = AppStack(hierarchy: [webPrefix]),
+        curr = AppStack(hierarchy: [webPrefix]),
         status = AppStatus.found,
-        visitedQueries = new HashMap(),
-        visitedUrlNameQueries = new HashMap(),
+        visitedQueryData = new HashMap(),
         visitedCollections = new HashMap() {
     requested.addListener(_updateStack);
   }
@@ -101,10 +99,16 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
         } else if (i == 0 && requested.hierarchy[i] == appPrefix) {
           // "app" at hierarchy 0
           String key = getRoute(requested.hierarchy.sublist(0, i + 1), "");
-          if (!visitedQueries.containsKey(key))
-            visitedCollections[key] =
-                FirebaseFirestore.instance.collection(collectionNames[0]);
-          visitedQueries[key] = await visitedCollections[key].get();
+          if (!visitedCollections.containsKey(key)) {
+              visitedCollections[key] =
+                  FirebaseFirestore.instance.collection(collectionNames[0]);
+            QuerySnapshot query = await visitedCollections[key].get();
+            visitedQueryData[key] = [];
+            query.docs.forEach((doc) {
+              visitedQueryData[key].add(doc.data());
+              visitedCollections[appendRoute(doc.data()[urlName], key)] = doc.reference.collection(collectionNames[1]);
+            });
+          }
           mode = RouteMode.app;
         } else {
           switch (mode) {
@@ -113,21 +117,17 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
               break;
             case RouteMode.app:
               String key = getRoute(requested.hierarchy.sublist(0, i + 1), "");
-              if (!visitedUrlNameQueries.containsKey(key)) {
-                String prevKey =
-                    getRoute(requested.hierarchy.sublist(0, i), "");
-                QuerySnapshot newQuery = await visitedCollections[prevKey]
-                    .where("url name", isEqualTo: this.requested.hierarchy[i])
-                    .limit(1)
-                    .get();
-                if (newQuery.docs.length == 0) {
-                  notFound = true;
-                } else {
-                  visitedUrlNameQueries[key] = newQuery;
-                  visitedCollections[key] =
-                      newQuery.docs[0].reference.collection(collectionNames[i]);
-                  visitedQueries[key] = await visitedCollections[key].get();
+              if (visitedCollections.containsKey(key)) {
+                if (!visitedQueryData.containsKey(key)) {
+                  QuerySnapshot query = await visitedCollections[key].get();
+                  visitedQueryData[key] = [];
+                  query.docs.forEach((doc) {
+                    visitedQueryData[key].add(doc.data());
+                    if (i + 1 < collectionNames.length) visitedCollections[appendRoute(doc.data()[urlName], key)] = doc.reference.collection(collectionNames[i+1]);
+                  });
                 }
+              } else {
+                notFound = true;
               }
               break;
             case RouteMode.questionId:
@@ -160,7 +160,8 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
         String key = getRoute(curr.hierarchy.sublist(0, i + 1), "");
         pages.add(MaterialPage(
             //key: ValueKey(key),
-            child: AppHomeView(appHierarchy: [], query: visitedQueries[key])));
+            child: AppHomeView(
+                appHierarchy: [], queryData: visitedQueryData[key])));
         mode = RouteMode.app;
       } else {
         switch (mode) {
@@ -172,7 +173,7 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
                 //key: ValueKey(key),
                 child: AppHomeView(
                     appHierarchy: curr.hierarchy.sublist(1, i + 1),
-                    query: visitedQueries[key])));
+                    queryData: visitedQueryData[key])));
             break;
           case RouteMode.questionId:
             break;
