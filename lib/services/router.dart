@@ -68,6 +68,14 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
     return status == AppStatus.notFound || requested.hierarchy.length > 1;
   }
 
+  bool isWebMode() {
+    return curr.hierarchy[0] == webPrefix;
+  }
+
+  bool isAppMode() {
+    return curr.hierarchy[0] == appPrefix;
+  }
+
   void pop() {
     if (status == AppStatus.notFound) {
       status = AppStatus.found;
