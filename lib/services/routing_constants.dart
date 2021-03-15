@@ -26,7 +26,8 @@ String appendRoute(String pathSegment, String route) {
 String getAppRoute(List<String> hierarchy) => getRoute(hierarchy, "");
 String getWebRoute(List<String> hierarchy) => getRoute(hierarchy.sublist(1), "");
 List<String> get collectionNames => Constants.mainHierarchy;
-const String appPrefix = Constants.appHomeRouteName;
-const String webPrefix = Constants.webHomeRouteNamePseudo;
-
 const String urlName = Constants.docUrlName;
+
+const String app = Constants.appPrefix;
+const String web = Constants.webPrefix;
+const String questionID = Constants.questionIDPrefix;

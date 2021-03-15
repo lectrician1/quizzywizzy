@@ -15,8 +15,6 @@ class AppHomeView extends StatelessWidget {
     "Select a Topic",
     "Select a Subtopic"
   ];
-  final double widthFactor = 0.75;
-  final int minExpandWidth = 1000;
   final AppRouterDelegate delegate = Get.find<AppRouterDelegate>();
   AppHomeView({@required this.appHierarchy, @required this.queryData});
 

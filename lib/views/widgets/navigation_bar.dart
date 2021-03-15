@@ -4,6 +4,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
 import 'package:quizzywizzy/services/auth_service.dart' as AuthService;
 import 'package:quizzywizzy/services/router.dart';
+import 'package:quizzywizzy/services/routing_constants.dart';
 import 'package:quizzywizzy/views/widgets/custom_snack_bars.dart';
 import 'package:quizzywizzy/views/widgets/resizer.dart';
 import 'package:quizzywizzy/views/widgets/sign_in_dialog.dart';
@@ -11,8 +12,6 @@ import 'package:quizzywizzy/views/widgets/sign_in_dialog.dart';
 class NavigationBar extends StatelessWidget {
   final Widget body;
   final String title;
-  final double widthFactor = 0.75;
-  final int minExpandWidth = 1000;
   final AppRouterDelegate delegate = Get.find<AppRouterDelegate>();
   NavigationBar({@required this.title, @required this.body});
 
@@ -61,7 +60,7 @@ class NavigationBar extends StatelessWidget {
               ],
               OutlinedButton(
                 child: Text("Home"),
-                onPressed: () => delegate.setStack(["web"]),
+                onPressed: () => delegate.setStack([web]),
                 style: ButtonStyle(
                     overlayColor: MaterialStateProperty.all<Color>(
                         Colors.white.withOpacity(0.2)),
@@ -100,7 +99,7 @@ class NavigationBar extends StatelessWidget {
     if (delegate.isWebMode())
       return OutlinedButton(
           onPressed: () {
-            delegate.setStack(["app"]);
+            delegate.setStack([app]);
           },
           child: Text("Launch App"),
           style: ButtonStyle(
