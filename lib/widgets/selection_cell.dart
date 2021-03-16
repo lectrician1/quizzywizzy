@@ -6,7 +6,7 @@ class SelectionCell extends StatelessWidget {
   final IconData _icon;
   final double width;
   final double height;
-  SelectionCell({@required String text, @required IconData icon, @required this.width, @required this.height, @required Function onTap})
+  SelectionCell({@required String text, @required IconData icon, this.width=200, this.height=200, @required Function onTap})
       : this._text = text,
         this._icon = icon,
         this._onTap = onTap;

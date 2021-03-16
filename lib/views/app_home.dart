@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:quizzywizzy/services/router.dart';
-import 'package:quizzywizzy/views/widgets/navigation_bar.dart';
-import 'package:quizzywizzy/views/widgets/resizer.dart';
-import 'package:quizzywizzy/views/widgets/selection_cell.dart';
-import 'package:quizzywizzy/constants.dart' as Constants;
+import 'package:quizzywizzy/widgets/navigation_bar.dart';
+import 'package:quizzywizzy/widgets/resizer.dart';
+import 'package:quizzywizzy/widgets/selection_cell.dart';
+import 'package:quizzywizzy/constants.dart';
 
 class AppHomeView extends StatelessWidget {
   final List<String> appHierarchy;
@@ -54,8 +54,6 @@ class AppHomeView extends StatelessWidget {
             alignment: WrapAlignment.center,
             children: queryData
                 .map((docData) => SelectionCell(
-                    width: 200,
-                    height: 200,
                     text: docData[Constants.docName],
                     icon: Icons.ac_unit,
                     onTap: () {

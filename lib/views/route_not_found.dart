@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:quizzywizzy/views/widgets/navigation_bar.dart';
+import 'package:quizzywizzy/widgets/navigation_bar.dart';
 
 class RouteNotFoundView extends StatelessWidget {
   final String _name;

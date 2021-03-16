@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
-import 'package:quizzywizzy/services/auth_service.dart' as AuthService;
+import 'package:quizzywizzy/services/auth_service.dart';
 import 'package:quizzywizzy/services/router.dart';
 import 'package:quizzywizzy/services/routing_constants.dart';
-import 'package:quizzywizzy/views/widgets/custom_snack_bars.dart';
-import 'package:quizzywizzy/views/widgets/resizer.dart';
-import 'package:quizzywizzy/views/widgets/sign_in_dialog.dart';
+import 'package:quizzywizzy/widgets/custom_snack_bars.dart';
+import 'package:quizzywizzy/widgets/resizer.dart';
+import 'package:quizzywizzy/widgets/sign_in_dialog.dart';
 
 class NavigationBar extends StatelessWidget {
   final Widget body;
@@ -127,7 +127,7 @@ class NavigationBar extends StatelessWidget {
           switch (value) {
             case "Sign Out":
               AuthService.signOutWithGoogle().catchError((e) {
-                InfoSnackBar(
+                ErrorSnackBar(
                     text: AuthService.getMessageFromSignOutErrorCode(e));
               });
               break;

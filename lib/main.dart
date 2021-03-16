@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
-import 'package:quizzywizzy/constants.dart' as Constants;
-import 'package:quizzywizzy/services/auth_service.dart' as AuthService;
+import 'package:quizzywizzy/constants.dart';
+import 'package:quizzywizzy/services/auth_service.dart';
 //import 'package:quizzywizzy/services/configure_nonweb.dart' if (dart.library.html) 'package:quizzywizzy/services/configure_web.dart';
 import 'package:quizzywizzy/services/router.dart';
 import 'models/app_user.dart';
@@ -41,7 +41,7 @@ class QuizzyWizzyApp extends StatelessWidget {
                 return null;
               }),
           StreamProvider<GoogleSignInAccount>.value(
-            value: AuthService.googleSignIn.onCurrentUserChanged,
+            value: AuthService.onGoogleUserChanged,
             catchError: (context, error) {
               print("Error in Google Stream: $error");
               return null;

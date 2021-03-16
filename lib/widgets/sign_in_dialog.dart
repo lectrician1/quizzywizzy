@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:quizzywizzy/views/widgets/custom_snack_bars.dart';
+import 'package:quizzywizzy/widgets/custom_snack_bars.dart';
 import 'package:transparent_image/transparent_image.dart';
-import 'package:quizzywizzy/services/auth_service.dart' as AuthService;
-import 'package:quizzywizzy/constants.dart' as Constants;
+import 'package:quizzywizzy/services/auth_service.dart';
+import 'package:quizzywizzy/constants.dart';
 
 class SignInDialog extends StatefulWidget {
   @override
@@ -208,7 +208,7 @@ class _SignInDialogButtonState extends State<SignInDialogButton>
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(context)
                   ..removeCurrentSnackBar()
-                  ..showSnackBar(InfoSnackBar(text: "Unable to complete sign in process: ${AuthService.getMessageFromGoogleSignInErrorCode(e)}"));
+                  ..showSnackBar(ErrorSnackBar(text: "Unable to complete sign in process: ${AuthService.getMessageFromGoogleSignInErrorCode(e)}"));
               });
             },
             child: SignInButtonTemplate(

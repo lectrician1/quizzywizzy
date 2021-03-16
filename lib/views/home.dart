@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:quizzywizzy/services/router.dart';
-import 'package:quizzywizzy/views/widgets/navigation_bar.dart';
-import 'package:quizzywizzy/constants.dart' as Constants;
+import 'package:quizzywizzy/widgets/navigation_bar.dart';
+import 'package:quizzywizzy/constants.dart';
 
 class HomeView extends StatelessWidget {
   final AppRouterDelegate delegate = Get.find<AppRouterDelegate>();

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-class InfoSnackBar extends SnackBar {
+class ErrorSnackBar extends SnackBar {
   final String text;
-  InfoSnackBar({@required this.text})
+  ErrorSnackBar({@required this.text})
       : super(
             content: Row(
               children: [
