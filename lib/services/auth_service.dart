@@ -1,10 +1,11 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:quizzywizzy/models/app_user.dart';
 import 'package:quizzywizzy/constants.dart' as Constants;
 
 final GoogleSignIn googleSignIn = GoogleSignIn(
-    scopes: ["email", "profile"], hostedDomain: Constants.domains[0]);
+    scopes: ["email", "profile"]);
 final FirebaseAuth _auth = FirebaseAuth.instance;
 
 AppUser _appUserFromFireBaseUser(User user) =>
@@ -16,10 +17,16 @@ Stream<AppUser> get appUserStream =>
 Future<AppUser> signInWithGoogle() async {
   if (_auth.currentUser != null || googleSignIn.currentUser != null)
     await signOutWithGoogle();
+  //googleSignIn.hostedDomain = Constants.domains[Random().nextInt(2)];
   final GoogleSignInAccount googleSignInAccount = await googleSignIn.signIn();
   final GoogleSignInAuthentication googleSignInAuthentication =
       await googleSignInAccount.authentication;
-  if (googleSignIn.currentUser != null) print(googleSignIn.currentUser.email);
+
+  List<String> gmailSegments = googleSignIn.currentUser.email.split("@");
+  if (!Constants.domains.contains(gmailSegments[1])) {
+    await signOutWithGoogle();
+    throw PlatformException(code: "invalid-domain");
+  }
 
   final AuthCredential credential = GoogleAuthProvider.credential(
     accessToken: googleSignInAuthentication.accessToken,
@@ -42,6 +49,17 @@ Future<AppUser> signInWithGoogle() async {
   return _appUserFromFireBaseUser(user);
 }
 
+Future<void> signInSilently() async {
+  await googleSignIn.signInSilently();
+  if (googleSignIn.currentUser != null) {
+    List<String> gmailSegments = googleSignIn.currentUser.email.split("@");
+    if (!Constants.domains.contains(gmailSegments[1])) {
+      await signOutWithGoogle();
+      throw PlatformException(code: "invalid-domain");
+    }
+  }
+}
+
 Future<void> signOutWithGoogle() async {
   if (_auth.currentUser != null) await _auth.signOut();
   if (googleSignIn.currentUser != null) await googleSignIn.signOut();
@@ -49,9 +67,11 @@ Future<void> signOutWithGoogle() async {
 }
 
 String getMessageFromGoogleSignInErrorCode(e) {
-  switch (e) {
+  switch (e.code) {
     case "popup_closed_by_user":
       return "Google Sign In OAuth consent screen closed by the user";
+    case "invalid-domain":
+      return "Google Account does not have a valid domain: ${Constants.domains.toString()}";
     default:
       return "Login failed. Please try again.";
   }

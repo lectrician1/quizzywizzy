@@ -4,7 +4,9 @@ class SelectionCell extends StatelessWidget {
   final String _text;
   final Function _onTap;
   final IconData _icon;
-  SelectionCell({String text, IconData icon, @required Function onTap})
+  final double width;
+  final double height;
+  SelectionCell({@required String text, @required IconData icon, @required this.width, @required this.height, @required Function onTap})
       : this._text = text,
         this._icon = icon,
         this._onTap = onTap;
@@ -12,35 +14,42 @@ class SelectionCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     assert(debugCheckHasMaterial(context));
-    return Card(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15.0),
-      ),
-      child: Material(
-        color: Colors.amber,
+    return Container(
+      width: width,
+      height: height,
+      child: Card(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15.0),
         ),
-        child: InkWell(
-          splashColor: Colors.blue,
-          onTap: _onTap,
-          child: Column(
-            children: [
-              Expanded(
-                flex: 3,
-                child: Center(
-                  child: Icon(
-                    _icon,
+        child: Material(
+          color: Colors.amber,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15.0),
+          ),
+          child: InkWell(
+            splashColor: Colors.blue,
+            onTap: _onTap,
+            child: Stack(
+              children: [
+                Container(
+                  width: width,
+                  height: height * 3/4,
+                  child: Center(
+                    child: Icon(
+                      _icon,
+                    ),
                   ),
                 ),
-              ),
-              Expanded(
-                flex: 1,
-                child: Center(
-                  child: Text(_text),
+                Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(_text,
+                    textAlign: TextAlign.center),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

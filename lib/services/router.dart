@@ -1,11 +1,13 @@
 import 'dart:collection';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:quizzywizzy/models/question_model.dart';
 import 'package:quizzywizzy/services/routing_constants.dart';
 import 'package:quizzywizzy/views/app_home.dart';
 import 'package:quizzywizzy/views/home.dart';
 import 'package:quizzywizzy/views/loading.dart';
 import 'package:quizzywizzy/views/questions.dart';
+import 'package:quizzywizzy/views/question_id.dart';
 import 'package:quizzywizzy/views/route_not_found.dart';
 
 class AppStack extends ChangeNotifier {
@@ -33,18 +35,16 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
   AppStack requested;
   AppStack curr;
   AppStatus status;
-  HashMap<String, QuerySnapshot> visitedQueries;
-  HashMap<String, QuerySnapshot> visitedUrlNameQueries;
+  HashMap<String, List<Map<String, dynamic>>> visitedQueryData;
   HashMap<String, CollectionReference> visitedCollections;
   AppStack get currentConfiguration => requested;
 
   AppRouterDelegate()
       : navigatorKey = GlobalKey<NavigatorState>(),
-        requested = AppStack(hierarchy: ["web"]),
-        curr = AppStack(hierarchy: ["web"]),
+        requested = AppStack(hierarchy: [web]),
+        curr = AppStack(hierarchy: [web]),
         status = AppStatus.found,
-        visitedQueries = new HashMap(),
-        visitedUrlNameQueries = new HashMap(),
+        visitedQueryData = new HashMap(),
         visitedCollections = new HashMap() {
     requested.addListener(_updateStack);
   }
@@ -69,6 +69,14 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
 
   bool canPop() {
     return status == AppStatus.notFound || requested.hierarchy.length > 1;
+  }
+
+  bool isWebMode() {
+    return curr.hierarchy[0] == web;
+  }
+
+  bool isAppMode() {
+    return curr.hierarchy[0] == app;
   }
 
   void pop() {
@@ -96,20 +104,29 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
       RouteMode mode = RouteMode.app;
       for (int i = 0; i < requested.hierarchy.length; i++) {
         if (notFound) break;
-        if (i == 0 && requested.hierarchy[i] == webPrefix) {
+        if (i == 0 && requested.hierarchy[i] == web) {
           // "web" at hierarchy 0
           mode = RouteMode.web;
-        } else if (i == 0 && requested.hierarchy[i] == appPrefix) {
+        } else if (i == 0 && requested.hierarchy[i] == app) {
           // "app" at hierarchy 0
           String key = getRoute(requested.hierarchy.sublist(0, i + 1), "");
-          if (!visitedQueries.containsKey(key))
+          if (!visitedCollections.containsKey(key)) {
             visitedCollections[key] =
                 FirebaseFirestore.instance.collection(collectionNames[0]);
-          visitedQueries[key] = await visitedCollections[key].get();
+            QuerySnapshot query = await visitedCollections[key].get();
+            visitedQueryData[key] = [];
+            query.docs.forEach((doc) {
+              visitedQueryData[key].add(doc.data());
+              visitedCollections[appendRoute(doc.data()[urlName], key)] =
+                  doc.reference.collection(collectionNames[1]);
+            });
+          }
           mode = RouteMode.app;
-        } 
-        else if (requested.hierarchy[i] == "questions") {
-          
+        } else if (i == 1 &&
+            requested.hierarchy[0] == app &&
+            requested.hierarchy[i] == questionID) {
+          if (requested.hierarchy.length != 3) notFound = true;
+          mode = RouteMode.questionId;
         } else {
           switch (mode) {
             case RouteMode.web:
@@ -117,21 +134,20 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
               break;
             case RouteMode.app:
               String key = getRoute(requested.hierarchy.sublist(0, i + 1), "");
-              if (!visitedUrlNameQueries.containsKey(key)) {
-                String prevKey =
-                    getRoute(requested.hierarchy.sublist(0, i), "");
-                QuerySnapshot newQuery = await visitedCollections[prevKey]
-                    .where("url name", isEqualTo: this.requested.hierarchy[i])
-                    .limit(1)
-                    .get();
-                if (newQuery.docs.length == 0) {
-                  notFound = true;
-                } else {
-                  visitedUrlNameQueries[key] = newQuery;
-                  visitedCollections[key] =
-                      newQuery.docs[0].reference.collection(collectionNames[i]);
-                  visitedQueries[key] = await visitedCollections[key].get();
+              if (visitedCollections.containsKey(key)) {
+                if (!visitedQueryData.containsKey(key)) {
+                  QuerySnapshot query = await visitedCollections[key].get();
+                  visitedQueryData[key] = [];
+                  query.docs.forEach((doc) {
+                    visitedQueryData[key].add(doc.data());
+                    if (i + 1 < collectionNames.length)
+                      visitedCollections[
+                              appendRoute(doc.data()[urlName], key)] =
+                          doc.reference.collection(collectionNames[i + 1]);
+                  });
                 }
+              } else {
+                notFound = true;
               }
               break;
             case RouteMode.questionId:
@@ -155,17 +171,22 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
     List<Page<dynamic>> pages = [];
     RouteMode mode = RouteMode.app;
     for (int i = 0; i < curr.hierarchy.length; i++) {
-      if (i == 0 && curr.hierarchy[i] == webPrefix) {
+      if (i == 0 && curr.hierarchy[i] == web) {
         pages.add(MaterialPage(
             //key: ValueKey(getRoute(curr.hierarchy.sublist(0, i + 1), "")),
             child: HomeView()));
         mode = RouteMode.web;
-      } else if (i == 0 && curr.hierarchy[i] == appPrefix) {
+      } else if (i == 0 && curr.hierarchy[i] == app) {
         String key = getRoute(curr.hierarchy.sublist(0, i + 1), "");
         pages.add(MaterialPage(
             //key: ValueKey(key),
-            child: AppHomeView(appHierarchy: [], query: visitedQueries[key])));
+            child: AppHomeView(
+                appHierarchy: [], queryData: visitedQueryData[key])));
         mode = RouteMode.app;
+      } else if (i == 1 &&
+          requested.hierarchy[0] == app &&
+          requested.hierarchy[i] == questionID) {
+        mode = RouteMode.questionId;
       } else {
         switch (mode) {
           case RouteMode.web:
@@ -176,9 +197,23 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
                 //key: ValueKey(key),
                 child: AppHomeView(
                     appHierarchy: curr.hierarchy.sublist(1, i + 1),
-                    query: visitedQueries[key])));
+                    queryData: visitedQueryData[key])));
             break;
           case RouteMode.questionId:
+            pages.add(MaterialPage(
+                child: QuestionIDView(
+                    questionData: QuestionModel.multipleChoice(
+                        questionText:
+                            "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim ",
+                        choices: [
+                          "quis nostrud exercitation ullamco",
+                          "reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur."
+                        ],
+                        answer: 0,
+                        explanations: [
+                          "Excepteur sint occaecat cupidatat non proident",
+                          "sunt in culpa qui officia deserunt mollit anim id est laborum."
+                        ]))));
             break;
           case RouteMode.questions:
             break;
@@ -218,19 +253,19 @@ class AppRouteInformationParser extends RouteInformationParser<AppStack> {
   Future<AppStack> parseRouteInformation(
       RouteInformation routeInformation) async {
     final uri = Uri.parse(routeInformation.location);
-    if (uri.pathSegments.length >= 1 && uri.pathSegments[0] == appPrefix)
+    if (uri.pathSegments.length >= 1 && uri.pathSegments[0] == app)
       return AppStack(hierarchy: uri.pathSegments);
-    return AppStack(hierarchy: [webPrefix] + uri.pathSegments);
+    return AppStack(hierarchy: [web] + uri.pathSegments);
   }
 
   @override
   RouteInformation restoreRouteInformation(AppStack page) {
     RouteInformation route;
     switch (page.hierarchy[0]) {
-      case webPrefix:
+      case web:
         route = RouteInformation(location: getWebRoute(page.hierarchy));
         break;
-      case appPrefix:
+      case app:
         route = RouteInformation(location: getAppRoute(page.hierarchy));
         break;
     }

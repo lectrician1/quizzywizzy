@@ -34,7 +34,7 @@ class QuizzyWizzyApp extends StatelessWidget {
           ),
           FutureProvider<GoogleSignInAccount>(
               create: (context) {
-                return AuthService.googleSignIn.signInSilently();
+                return AuthService.signInSilently();
               },
               catchError: (context, error) {
                 print("Error in Google Auto Sign In: $error");
