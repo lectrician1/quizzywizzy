@@ -17,7 +17,6 @@ class AppHomeView extends StatelessWidget {
   ];
   final AppRouterDelegate delegate = Get.find<AppRouterDelegate>();
   AppHomeView({@required this.appHierarchy, @required this.queryData});
-
   Widget build(BuildContext context) {
     return Scaffold(
       body: NavigationBar(

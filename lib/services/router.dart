@@ -6,6 +6,7 @@ import 'package:quizzywizzy/services/routing_constants.dart';
 import 'package:quizzywizzy/views/app_home.dart';
 import 'package:quizzywizzy/views/home.dart';
 import 'package:quizzywizzy/views/loading.dart';
+import 'package:quizzywizzy/views/questions.dart';
 import 'package:quizzywizzy/views/question_id.dart';
 import 'package:quizzywizzy/views/route_not_found.dart';
 
