@@ -6,7 +6,7 @@ import 'package:quizzywizzy/services/routing_constants.dart';
 import 'package:quizzywizzy/views/app_home.dart';
 import 'package:quizzywizzy/views/home.dart';
 import 'package:quizzywizzy/views/loading.dart';
-import 'package:quizzywizzy/views/question_list.dart';
+import 'package:quizzywizzy/views/study_set.dart';
 import 'package:quizzywizzy/views/question_id.dart';
 import 'package:quizzywizzy/views/route_not_found.dart';
 
@@ -254,7 +254,7 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
           _requested.hierarchy[i] == questionList) {
         // if past 1st hierarchy && 0th path segment is app && current path segment is questionList:
         pages.add(MaterialPage(
-            child: QuestionListView(
+            child: StudySetView(
                 appHierarchy: _curr.hierarchy.sublist(1, i + 1))));
         mode = RouteMode.questionList;
       } else {

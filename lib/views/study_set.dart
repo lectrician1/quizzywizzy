@@ -4,10 +4,10 @@ import 'package:quizzywizzy/services/router.dart';
 import 'package:quizzywizzy/widgets/navigation_bar.dart';
 import 'package:quizzywizzy/constants.dart';
 
-class QuestionListView extends StatelessWidget {
+class StudySetView extends StatelessWidget {
   final List<String> appHierarchy;
   final AppRouterDelegate delegate = Get.find<AppRouterDelegate>();
-  QuestionListView({@required this.appHierarchy});
+  StudySetView({@required this.appHierarchy});
 
   Widget build(BuildContext context) {
     return Scaffold(
