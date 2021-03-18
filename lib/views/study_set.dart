@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:quizzywizzy/services/router.dart';
-import 'package:quizzywizzy/widgets/navigation_bar.dart';
-import 'package:quizzywizzy/constants.dart';
+import 'package:quizzywizzy/widgets/body_template.dart';
 
 class StudySetView extends StatelessWidget {
   final List<String> appHierarchy;
@@ -10,27 +9,20 @@ class StudySetView extends StatelessWidget {
   StudySetView({@required this.appHierarchy});
 
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: NavigationBar(
-        title: Constants.title,
-        body: SafeArea(
-          child: Scrollbar(
-            child: Align(
-                alignment: Alignment.topCenter,
-                child: Container(
-                  constraints: BoxConstraints(maxWidth: 600),
-                  child: ListView(
-                    padding: const EdgeInsets.all(8),
-                    children: [Text("hi")],
-                  ),
-                )),
+    return BodyTemplate(
+      child: Stack(
+        children: [
+          FloatingActionButton(
+            onPressed: () {},
+            tooltip: 'Add Question',
+            child: Icon(Icons.add),
           ),
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: null,
-        tooltip: 'Add Question',
-        child: const Icon(Icons.add),
+          ListView(
+            shrinkWrap: true,
+            padding: const EdgeInsets.all(8),
+            children: [Text("hi")],
+          ),
+        ],
       ),
     );
   }

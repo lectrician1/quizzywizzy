@@ -7,6 +7,7 @@ class QuestionDisplay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView(
+      shrinkWrap: true,
       children: [
         Text(questionData.questionText),
         Text(questionData.choices.toString()),

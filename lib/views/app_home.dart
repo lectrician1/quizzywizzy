@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:quizzywizzy/services/router.dart';
-import 'package:quizzywizzy/widgets/navigation_bar.dart';
-import 'package:quizzywizzy/widgets/resizer.dart';
+import 'package:quizzywizzy/widgets/body_template.dart';
 import 'package:quizzywizzy/widgets/selection_cell.dart';
 import 'package:quizzywizzy/constants.dart';
 
@@ -18,26 +17,12 @@ class AppHomeView extends StatelessWidget {
   final AppRouterDelegate delegate = Get.find<AppRouterDelegate>();
   AppHomeView({@required this.appHierarchy, @required this.queryData});
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: NavigationBar(
-        title: Constants.title,
-        body: SafeArea(
-          child: Scrollbar(
-            child: Align(
-              alignment: Alignment.topCenter,
-              child: WidthResizer(
-                  widthFactor: 0.75,
-                  constraintWidth: 800,
-                  builder: _getHomeContent),
-            ),
-          ),
-        ),
-      ),
-    );
+    return BodyTemplate(child: _getHomeContent(context));
   }
 
-  Widget _getHomeContent(BuildContext context, BoxConstraints constraints) {
+  Widget _getHomeContent(BuildContext context) {
     return ListView(
+      shrinkWrap: true,
       children: [
         Center(
             child: Container(

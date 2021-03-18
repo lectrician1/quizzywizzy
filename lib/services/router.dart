@@ -89,17 +89,7 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
     return Navigator(
       key: navigatorKey,
       pages: List.unmodifiable(_getPages()),
-      /*
-      onPopPage: (route, result) {
-        if (!route.didPop(result)) return false;
-        if (status == AppStatus.notFound) {
-          status = AppStatus.found;
-          requested.resetToCurrStack(curr);
-          notifyListeners();
-        } else
-          requested.pop();
-        return true;
-      },*/
+      onPopPage: (route, result) => route.didPop(result),
     );
   }
 

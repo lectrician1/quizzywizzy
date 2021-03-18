@@ -2,18 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
+import 'package:quizzywizzy/constants.dart';
 import 'package:quizzywizzy/services/auth_service.dart';
 import 'package:quizzywizzy/services/router.dart';
 import 'package:quizzywizzy/services/routing_constants.dart';
 import 'package:quizzywizzy/widgets/custom_snack_bars.dart';
-import 'package:quizzywizzy/widgets/resizer.dart';
 import 'package:quizzywizzy/widgets/sign_in_dialog.dart';
 
 class NavigationBar extends StatelessWidget {
-  final Widget body;
+  final Widget child;
   final String title;
   final AppRouterDelegate delegate = Get.find<AppRouterDelegate>();
-  NavigationBar({@required this.title, @required this.body});
+  NavigationBar({@required this.title, @required this.child});
 
   @override
   Widget build(BuildContext context) {
@@ -23,10 +23,9 @@ class NavigationBar extends StatelessWidget {
           SliverAppBar(
             automaticallyImplyLeading: false,
             flexibleSpace: FlexibleSpaceBar(
-              title: WidthResizer(
-                widthFactor: 0.75,
-                constraintWidth: 800,
-                builder: _getAppBarContent,
+              title: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: Constants.constraintWidth),
+                child: _getAppBarContent(context),
               ),
               centerTitle: true,
               titlePadding: EdgeInsets.all(0),
@@ -36,11 +35,11 @@ class NavigationBar extends StatelessWidget {
           ),
         ];
       },
-      body: body,
+      body: child,
     );
   }
 
-  Widget _getAppBarContent(BuildContext context, BoxConstraints constraints) {
+  Widget _getAppBarContent(BuildContext context) {
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 10),
       child: Stack(
