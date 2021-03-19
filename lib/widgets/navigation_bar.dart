@@ -30,7 +30,7 @@ class NavigationBar extends StatelessWidget {
               centerTitle: true,
               titlePadding: EdgeInsets.all(0),
             ),
-            toolbarHeight: 65,
+            toolbarHeight: 100,
             floating: true,
           ),
         ];

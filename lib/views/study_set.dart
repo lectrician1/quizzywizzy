@@ -11,16 +11,24 @@ class StudySetView extends StatelessWidget {
   Widget build(BuildContext context) {
     return BodyTemplate(
       child: Stack(
+        fit: StackFit.expand,
         children: [
-          FloatingActionButton(
-            onPressed: () {},
-            tooltip: 'Add Question',
-            child: Icon(Icons.add),
-          ),
-          ListView(
+          ListView.builder(
             shrinkWrap: true,
             padding: const EdgeInsets.all(8),
-            children: [Text("hi")],
+            itemCount: 100,
+            itemBuilder: (context, index) {
+              return Text("Hi$index");
+            },
+          ),
+          Positioned(
+            bottom: 20,
+            right: 20,
+            child: FloatingActionButton(
+              onPressed: () {},
+              tooltip: 'Add Question',
+              child: Icon(Icons.add),
+            ),
           ),
         ],
       ),

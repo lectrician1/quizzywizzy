@@ -47,7 +47,7 @@ class AppHomeView extends StatelessWidget {
                                 .pushReplacementNamed(
                                     Constants.getCourseRoute(doc.data()["name"]));*/
                     }))
-                .toList(),
+                .toList().cast<Widget>(),
           ),
         ),
       ],
