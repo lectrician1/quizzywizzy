@@ -9,6 +9,28 @@ import 'package:quizzywizzy/services/routing_constants.dart';
 import 'package:quizzywizzy/widgets/custom_snack_bars.dart';
 import 'package:quizzywizzy/widgets/sign_in_dialog.dart';
 
+class _NavTheme {
+  static Color backgroundColor = Color(0xff1b5e20);
+  static Color foregroundColor = Colors.white;
+  static Color hoverColor = Colors.white.withOpacity(0.2);
+  static ButtonStyle leftButtonStyle = ButtonStyle(
+      overlayColor: MaterialStateProperty.all<Color>(hoverColor),
+      side: MaterialStateProperty.all<BorderSide>(BorderSide.none),
+      foregroundColor: MaterialStateProperty.all<Color>(foregroundColor));
+  static ButtonStyle rightButtonStyle = ButtonStyle(
+      side: MaterialStateProperty.all<BorderSide>(
+          BorderSide(width: 0.5, color: foregroundColor)),
+      overlayColor:
+          MaterialStateProperty.all<Color>(hoverColor),
+      foregroundColor: MaterialStateProperty.all<Color>(foregroundColor));
+  static TextStyle titleStyle = TextStyle(
+    color: foregroundColor,
+    fontFamily: 'Roboto',
+    fontWeight: FontWeight.w500,
+    letterSpacing: 0.15,
+  );
+}
+
 class NavigationBar extends StatelessWidget {
   final Widget child;
   final String title;
@@ -23,15 +45,32 @@ class NavigationBar extends StatelessWidget {
           SliverAppBar(
             automaticallyImplyLeading: false,
             flexibleSpace: FlexibleSpaceBar(
-              title: ConstrainedBox(
-                constraints: BoxConstraints(maxWidth: Constants.constraintWidth),
-                child: _getAppBarContent(context),
+              title: Stack(
+                children: [
+                  Align(
+                    alignment: Alignment.center,
+                    child: ConstrainedBox(
+                      constraints:
+                          BoxConstraints(maxWidth: Constants.constraintWidth),
+                      child: _getAppBarContent(context),
+                    ),
+                  ),
+                  Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Divider(height: 0),
+                  ),
+                ],
               ),
               centerTitle: true,
               titlePadding: EdgeInsets.all(0),
             ),
-            toolbarHeight: 100,
+            backgroundColor: _NavTheme.backgroundColor,
+            shadowColor: _NavTheme.backgroundColor,
+            forceElevated: true,
+            elevation: 5,
+            toolbarHeight: 80,
             floating: true,
+            snap: true,
           ),
         ];
       },
@@ -49,45 +88,57 @@ class NavigationBar extends StatelessWidget {
             alignment: Alignment.centerLeft,
             child: Row(mainAxisSize: MainAxisSize.min, children: [
               if (delegate.canPop()) ...[
-                IconButton(
-                    icon: Icon(Icons.arrow_back),
-                    color: Colors.white,
-                    onPressed: () {
-                      delegate.pop();
-                    }),
+                FractionallySizedBox(
+                  heightFactor: 0.45,
+                  child: FittedBox(
+                    fit: BoxFit.fitHeight,
+                    child: IconButton(
+                        icon: Icon(Icons.arrow_back),
+                        color: _NavTheme.foregroundColor,
+                        hoverColor: _NavTheme.hoverColor,
+                        onPressed: () {
+                          delegate.pop();
+                        }),
+                  ),
+                ),
                 Padding(padding: EdgeInsets.all(10)),
               ],
-              OutlinedButton(
-                child: Text("Home"),
-                onPressed: () => delegate.setStack([web]),
-                style: ButtonStyle(
-                    overlayColor: MaterialStateProperty.all<Color>(
-                        Colors.white.withOpacity(0.2)),
-                    side:
-                        MaterialStateProperty.all<BorderSide>(BorderSide.none),
-                    foregroundColor:
-                        MaterialStateProperty.all<Color>(Colors.white)),
+              FractionallySizedBox(
+                heightFactor: 0.45,
+                child: FittedBox(
+                  fit: BoxFit.fitHeight,
+                  child: OutlinedButton(
+                      child: Text("Home"),
+                      onPressed: () => delegate.setStack([web]),
+                      style: _NavTheme.leftButtonStyle),
+                ),
               ),
             ]),
           ),
           Align(
             alignment: Alignment.centerRight,
             child: Row(mainAxisSize: MainAxisSize.min, children: [
-              _getProfile(context),
+              FractionallySizedBox(
+                heightFactor: 0.45,
+                child: FittedBox(
+                    fit: BoxFit.fitHeight, child: _getProfile(context)),
+              ),
             ]),
           ),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              Text(
-                title,
-                style: TextStyle(
-                  fontFamily: "Roboto",
-                  fontSize: 20,
-                  letterSpacing: 0.15,
-                ),
+          FractionallySizedBox(
+            heightFactor: 0.40,
+            child: FittedBox(
+              fit: BoxFit.fitHeight,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Text(
+                    title,
+                    style: _NavTheme.titleStyle,
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ],
       ),
@@ -101,10 +152,7 @@ class NavigationBar extends StatelessWidget {
             delegate.setStack([app]);
           },
           child: Text("Launch App"),
-          style: ButtonStyle(
-              overlayColor: MaterialStateProperty.all<Color>(
-                  Colors.white.withOpacity(0.2)),
-              foregroundColor: MaterialStateProperty.all<Color>(Colors.white)));
+          style: _NavTheme.rightButtonStyle);
     final GoogleSignInAccount googleUser =
         Provider.of<GoogleSignInAccount>(context);
     if (googleUser == null)
@@ -117,10 +165,7 @@ class NavigationBar extends StatelessWidget {
             //AuthService.signInWithGoogle();
           },
           child: Text("Sign In"),
-          style: ButtonStyle(
-              overlayColor: MaterialStateProperty.all<Color>(
-                  Colors.white.withOpacity(0.2)),
-              foregroundColor: MaterialStateProperty.all<Color>(Colors.white)));
+          style: _NavTheme.rightButtonStyle);
     return PopupMenuButton(
         onSelected: (value) {
           switch (value) {
