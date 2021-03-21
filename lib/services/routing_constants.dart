@@ -15,6 +15,13 @@ enum AdditionalPage {
   questionId,
 }
 
+/// Used to push PseudoPages (views without url segments)
+enum PseudoPage {
+  none,
+  addQuestion,
+  singleQuestion,
+}
+
 /// Part of the routing_constants.dart file. This should only be used by the router.dart file.
 String getRoute(List<String> hierarchy, String home) {
   String route = home;

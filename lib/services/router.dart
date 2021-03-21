@@ -1,13 +1,13 @@
 import 'dart:collection';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:quizzywizzy/models/question_model.dart';
 import 'package:quizzywizzy/services/routing_constants.dart';
+import 'package:quizzywizzy/views/add_question.dart';
 import 'package:quizzywizzy/views/app_home.dart';
 import 'package:quizzywizzy/views/home.dart';
 import 'package:quizzywizzy/views/loading.dart';
+import 'package:quizzywizzy/views/single_question.dart';
 import 'package:quizzywizzy/views/study_set.dart';
-import 'package:quizzywizzy/views/question_id.dart';
 import 'package:quizzywizzy/views/route_not_found.dart';
 
 /// A class that stores a list/stack of path segments (called [hierarchy]).
@@ -16,27 +16,39 @@ import 'package:quizzywizzy/views/route_not_found.dart';
 class AppStack extends ChangeNotifier {
   List<String> _hierarchy;
   List<String> get hierarchy => _hierarchy;
+  PseudoPage _pseudoPage = PseudoPage.none;
+  PseudoPage get pseudoPage => _pseudoPage;
   AppStack({@required List<String> hierarchy}) : _hierarchy = hierarchy;
   void setStack(List<String> otherHierarchy) {
     _hierarchy = List.from(otherHierarchy);
+    _pseudoPage = PseudoPage.none;
     notifyListeners();
   }
 
   void copyCurrStack(AppStack curr) {
     _hierarchy = List.from(curr._hierarchy);
+    _pseudoPage = curr._pseudoPage;
   }
 
   void copyRequestedStack(AppStack requested) {
     _hierarchy = List.from(requested._hierarchy);
+    _pseudoPage = requested._pseudoPage;
   }
 
   void pop() {
-    _hierarchy.removeLast();
+    if (_pseudoPage == PseudoPage.none) _hierarchy.removeLast();
+    else _pseudoPage = PseudoPage.none;
     notifyListeners();
   }
 
   void push(String pathSegment) {
     _hierarchy.add(pathSegment);
+    _pseudoPage = PseudoPage.none;
+    notifyListeners();
+  }
+
+  void pushPseudo(PseudoPage page) {
+    _pseudoPage = page;
     notifyListeners();
   }
 }
@@ -121,6 +133,12 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
   void push(String pathSegment) {
     if (_loading) return;
     _requested.push(pathSegment);
+  }
+
+  /// pushes a pseudo path on to [_requested] stack. All calls will be ignored if [_loading] == true.
+  void pushPseudo(PseudoPage pseudoPage) {
+    if (_loading) return;
+    _requested.pushPseudo(pseudoPage);
   }
 
   /// updates [_requested] stack. All calls will be ignored if [_loading] == true.
@@ -221,6 +239,7 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
   List<Page<dynamic>> _getPages() {
     List<Page<dynamic>> pages = [];
     RouteMode mode = RouteMode.app;
+    String questionID = "";
     // the structure of the if else statements & switch statement of this for loop should match exactly with the for loop in _updateStack
     for (int i = 0; i < _curr.hierarchy.length; i++) {
       if (i == 0 && _curr.hierarchy[i] == web) {
@@ -235,13 +254,13 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
                 appHierarchy: [], queryData: _visitedQueryData[key])));
         mode = RouteMode.app;
       } else if (i == 1 &&
-          _requested.hierarchy[0] == app &&
-          _requested.hierarchy[i] == questionID) {
+          _curr.hierarchy[0] == app &&
+          _curr.hierarchy[i] == questionID) {
         // if 1st hierarchy && 0th path segment is app && current path segment is questionID:
         mode = RouteMode.questionId;
       } else if (i > 1 &&
-          _requested.hierarchy[0] == app &&
-          _requested.hierarchy[i] == questionList) {
+          _curr.hierarchy[0] == app &&
+          _curr.hierarchy[i] == questionList) {
         // if past 1st hierarchy && 0th path segment is app && current path segment is questionList:
         pages.add(MaterialPage(
             child: StudySetView(
@@ -260,11 +279,23 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
                     queryData: _visitedQueryData[key])));
             break;
           case RouteMode.questionId:
+            questionID = _curr.hierarchy[i];
             break;
           case RouteMode.questionList:
             break;
         }
       }
+    }
+    // handles creation of pseudo-pages (views without url segments)
+    switch (_curr._pseudoPage) {
+      case PseudoPage.none:
+        break;
+      case PseudoPage.addQuestion:
+        pages.add(MaterialPage(child: AddQuestionView()));
+        break;
+      case PseudoPage.singleQuestion:
+        pages.add(MaterialPage(child: SingleQuestionView()));
+        break;
     }
     if (_loading) {
       pages += [
@@ -286,19 +317,7 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
         break;
       case AdditionalPage.questionId:
         pages.add(MaterialPage(
-            child: QuestionIDView(
-                questionData: QuestionModel.multipleChoice(
-                    questionText:
-                        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim ",
-                    choices: [
-                      "quis nostrud exercitation ullamco",
-                      "reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur."
-                    ],
-                    answer: 0,
-                    explanations: [
-                      "Excepteur sint occaecat cupidatat non proident",
-                      "sunt in culpa qui officia deserunt mollit anim id est laborum."
-                    ]))));
+            child: SingleQuestionView.id(id: questionID)));
         break;
     }
     return pages;

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:quizzywizzy/services/router.dart';
+import 'package:quizzywizzy/services/routing_constants.dart';
 import 'package:quizzywizzy/widgets/body_template.dart';
 
 class StudySetView extends StatelessWidget {
@@ -25,7 +26,7 @@ class StudySetView extends StatelessWidget {
             bottom: 20,
             right: 20,
             child: FloatingActionButton(
-              onPressed: () {},
+              onPressed: () => delegate.pushPseudo(PseudoPage.addQuestion),
               tooltip: 'Add Question',
               child: Icon(Icons.add),
             ),
