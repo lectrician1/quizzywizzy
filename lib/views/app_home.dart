@@ -3,7 +3,6 @@ import 'package:get/get.dart';
 import 'package:quizzywizzy/services/router.dart';
 import 'package:quizzywizzy/widgets/body_template.dart';
 import 'package:quizzywizzy/widgets/selection_cell.dart';
-import 'package:quizzywizzy/constants.dart';
 
 class AppHomeView extends StatelessWidget {
   final List<String> appHierarchy;
@@ -39,10 +38,10 @@ class AppHomeView extends StatelessWidget {
             alignment: WrapAlignment.center,
             children: queryData
                 .map((docData) => SelectionCell(
-                    text: docData[Constants.docName],
+                    text: docData["name"],
                     icon: Icons.ac_unit,
                     onTap: () {
-                      delegate.push(docData[Constants.docUrlName]);
+                      delegate.push(docData["url name"]);
                       /*Navigator.of(context)
                                 .pushReplacementNamed(
                                     Constants.getCourseRoute(doc.data()["name"]));*/

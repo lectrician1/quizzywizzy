@@ -2,13 +2,16 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:quizzywizzy/models/app_user.dart';
-import 'package:quizzywizzy/constants.dart';
 
 /// A set of methods that manages [FirebaseAuth] and [GoogleSignIn].
 class AuthService {
+  // Firebase
   static final GoogleSignIn _googleSignIn = GoogleSignIn(
       scopes: ["email", "profile"]);
   static final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  // Email domains
+  static const List<String> domains = ["stu.naperville203.org", "naperville203.org"];
 
   /// Returns [GoogleSignIn.onCurrentUserChanged].
   static get onGoogleUserChanged => _googleSignIn.onCurrentUserChanged;
@@ -28,7 +31,7 @@ class AuthService {
         await googleSignInAccount.authentication;
 
     List<String> gmailSegments = _googleSignIn.currentUser.email.split("@");
-    if (!Constants.domains.contains(gmailSegments[1])) {
+    if (!domains.contains(gmailSegments[1])) {
       await signOutWithGoogle();
       throw PlatformException(code: "invalid-domain");
     }
@@ -58,7 +61,7 @@ class AuthService {
     await _googleSignIn.signInSilently();
     if (_googleSignIn.currentUser != null) {
       List<String> gmailSegments = _googleSignIn.currentUser.email.split("@");
-      if (!Constants.domains.contains(gmailSegments[1])) {
+      if (!domains.contains(gmailSegments[1])) {
         await signOutWithGoogle();
         throw PlatformException(code: "invalid-domain");
       }
@@ -76,7 +79,7 @@ class AuthService {
       case "popup_closed_by_user":
         return "Google Sign In OAuth consent screen closed by the user";
       case "invalid-domain":
-        return "Google Account does not have a valid domain: ${Constants.domains.toString()}";
+        return "Google Account does not have a valid domain: ${domains.toString()}";
       default:
         return "Login failed. Please try again.";
     }

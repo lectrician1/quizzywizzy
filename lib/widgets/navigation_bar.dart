@@ -20,8 +20,7 @@ class _NavTheme {
   static ButtonStyle rightButtonStyle = ButtonStyle(
       side: MaterialStateProperty.all<BorderSide>(
           BorderSide(width: 0.5, color: foregroundColor)),
-      overlayColor:
-          MaterialStateProperty.all<Color>(hoverColor),
+      overlayColor: MaterialStateProperty.all<Color>(hoverColor),
       foregroundColor: MaterialStateProperty.all<Color>(foregroundColor));
   static TextStyle titleStyle = TextStyle(
     color: foregroundColor,
@@ -34,8 +33,12 @@ class _NavTheme {
 class NavigationBar extends StatelessWidget {
   final Widget child;
   final String title;
+  final double constraintWidth;
   final AppRouterDelegate delegate = Get.find<AppRouterDelegate>();
-  NavigationBar({@required this.title, @required this.child});
+  NavigationBar(
+      {@required this.title,
+      @required this.child,
+      @required this.constraintWidth});
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +54,7 @@ class NavigationBar extends StatelessWidget {
                     alignment: Alignment.center,
                     child: ConstrainedBox(
                       constraints:
-                          BoxConstraints(maxWidth: Constants.constraintWidth),
+                          BoxConstraints(maxWidth: constraintWidth),
                       child: _getAppBarContent(context),
                     ),
                   ),
