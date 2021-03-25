@@ -12,6 +12,12 @@ class StudySetView extends StatelessWidget {
   final AppRouterDelegate delegate = Get.find<AppRouterDelegate>();
   StudySetView({@required this.appHierarchy});
 
+  FirebaseFirestore.instance
+  .collection('questions')
+  .where('age', isGreaterThan: 20)
+  .get()
+  .then(...);
+
   Widget build(BuildContext context) {
     return BodyTemplate(
       child: Stack(

@@ -36,8 +36,10 @@ class AppStack extends ChangeNotifier {
   }
 
   void pop() {
-    if (_pseudoPage == PseudoPage.none) _hierarchy.removeLast();
-    else _pseudoPage = PseudoPage.none;
+    if (_pseudoPage == PseudoPage.none)
+      _hierarchy.removeLast();
+    else
+      _pseudoPage = PseudoPage.none;
     notifyListeners();
   }
 
@@ -164,6 +166,7 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
     bool notFound = false;
     RouteMode mode = RouteMode.app;
     _additionalPage = AdditionalPage.none;
+
     // use an else if statement in the for loop if you want a change in mode
     // any changes in mode will cause any subsequent path segments in the requested hierarchy to be evaluated based on the mode, unless if another else if statement changes the mode later on
     for (int i = 0; i < _requested.hierarchy.length; i++) {
@@ -263,19 +266,21 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
           _curr.hierarchy[i] == questionList) {
         // if past 1st hierarchy && 0th path segment is app && current path segment is questionList:
         pages.add(MaterialPage(
-            child: StudySetView(
-                appHierarchy: _curr.hierarchy.sublist(1, i + 1))));
+            child:
+                StudySetView(appHierarchy: _curr.hierarchy.sublist(1, i + 1))));
         mode = RouteMode.questionList;
       } else {
         switch (mode) {
           case RouteMode.web:
             break;
           case RouteMode.app:
-            String key = getRoute(_curr.hierarchy.sublist(0, i + 1), "");
+            List hierarchy = _curr.hierarchy.sublist(0, i + 1);
+            String key = getRoute(hierarchy, "");
+            
             pages.add(MaterialPage(
                 //key: ValueKey(key),
                 child: AppHomeView(
-                    appHierarchy: _curr.hierarchy.sublist(1, i + 1),
+                    appHierarchy: hierarchy,
                     queryData: _visitedQueryData[key])));
             break;
           case RouteMode.questionId:
@@ -316,8 +321,7 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
         ];
         break;
       case AdditionalPage.questionId:
-        pages.add(MaterialPage(
-            child: SingleQuestionView.id(id: questionID)));
+        pages.add(MaterialPage(child: SingleQuestionView.id(id: questionID)));
         break;
     }
     return pages;
