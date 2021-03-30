@@ -16,9 +16,12 @@ import 'package:quizzywizzy/views/route_not_found.dart';
 class AppStack extends ChangeNotifier {
   List<String> _hierarchy;
   List<String> get hierarchy => _hierarchy;
+
   PseudoPage _pseudoPage = PseudoPage.none;
   PseudoPage get pseudoPage => _pseudoPage;
+
   AppStack({@required List<String> hierarchy}) : _hierarchy = hierarchy;
+
   void setStack(List<String> otherHierarchy) {
     _hierarchy = List.from(otherHierarchy);
     _pseudoPage = PseudoPage.none;
@@ -166,47 +169,90 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
     bool notFound = false;
     RouteMode mode = RouteMode.app;
     _additionalPage = AdditionalPage.none;
+    List<String> _hierarchy = _requested.hierarchy;
 
-    // use an else if statement in the for loop if you want a change in mode
-    // any changes in mode will cause any subsequent path segments in the requested hierarchy to be evaluated based on the mode, unless if another else if statement changes the mode later on
-    for (int i = 0; i < _requested.hierarchy.length; i++) {
-      if (notFound) break;
-      if (i == 0 && _requested.hierarchy[i] == web) {
-        // if 0th hierarchy && current path segment is web:
+    switch (_hierarchy[0]) {
+      case web:
         mode = RouteMode.web;
-      } else if (i == 0 && _requested.hierarchy[i] == app) {
-        // if 0th hierarchy && current path segment is app:
-        String key = getRoute(_requested.hierarchy.sublist(0, i + 1), "");
+        break;
+      case app:
+        String key = getRoute(_hierarchy.sublist(0, i + 1), "");
+
+        // If the 
         if (!_visitedCollections.containsKey(key)) {
           _visitedCollections[key] =
               FirebaseFirestore.instance.collection(collectionNames[0]);
+
           QuerySnapshot query = await _visitedCollections[key].get();
+
           _visitedQueryData[key] = [];
+
           query.docs.forEach((doc) {
             _visitedQueryData[key].add(doc.data());
+
             _visitedCollections[appendRoute(doc.data()[urlName], key)] =
                 doc.reference.collection(collectionNames[1]);
           });
         }
         mode = RouteMode.app;
-      } else if (i == 1 &&
-          _requested.hierarchy[0] == app &&
-          _requested.hierarchy[i] == questionID) {
+    }
+
+    // use an else if statement in the for loop if you want a change in mode
+    // any changes in mode will cause any subsequent path segments in the requested hierarchy to be evaluated based on the mode, unless if another else if statement changes the mode later on
+    for (int i = 0; i < _hierarchy.length; i++) {
+      if (notFound) break;
+
+      // if 0th hierarchy && current path segment is web
+      if (i == 0 && _hierarchy[i] == web) {
+        mode = RouteMode.web;
+      }
+
+      else if 
+      // if 0th hierarchy && current path segment is app
+      else if (i == 0 && _hierarchy[i] == app) {
+        String key = getRoute(_hierarchy.sublist(0, i + 1), "");
+
+        // If the 
+        if (!_visitedCollections.containsKey(key)) {
+          _visitedCollections[key] =
+              FirebaseFirestore.instance.collection(collectionNames[0]);
+
+          QuerySnapshot query = await _visitedCollections[key].get();
+
+          _visitedQueryData[key] = [];
+
+          query.docs.forEach((doc) {
+            _visitedQueryData[key].add(doc.data());
+
+            _visitedCollections[appendRoute(doc.data()[urlName], key)] =
+                doc.reference.collection(collectionNames[1]);
+          });
+        }
+        mode = RouteMode.app;
+      } 
+      
+      else if (i == 1 &&
+          _hierarchy[0] == app &&
+          _hierarchy[i] == questionID) {
         // if 1st hierarchy && 0th path segment is app && current path segment is questionID:
-        if (_requested.hierarchy.length != 3) notFound = true;
+        if (_hierarchy.length != 3) notFound = true;
         mode = RouteMode.questionId;
-      } else if (i > 1 &&
-          _requested.hierarchy[0] == app &&
-          _requested.hierarchy[i] == questionList) {
+      } 
+      
+      else if (i > 1 &&
+          _hierarchy[0] == app &&
+          _hierarchy[i] == questionList) {
         // if past 1st hierarchy && 0th path segment is app && current path segment is questionList:
         mode = RouteMode.questionList;
-      } else {
+      } 
+      
+      else {
         switch (mode) {
           case RouteMode.web:
             notFound = true;
             break;
           case RouteMode.app:
-            String key = getRoute(_requested.hierarchy.sublist(0, i + 1), "");
+            String key = getRoute(_hierarchy.sublist(0, i + 1), "");
             if (_visitedCollections.containsKey(key)) {
               if (!_visitedQueryData.containsKey(key)) {
                 QuerySnapshot query = await _visitedCollections[key].get();
@@ -231,10 +277,13 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
         }
       }
     }
+
     if (notFound) _additionalPage = AdditionalPage.notFound;
+
     if (_additionalPage == AdditionalPage.none)
       _curr.copyRequestedStack(_requested);
     _loading = false;
+
     notifyListeners();
   }
 
@@ -276,7 +325,7 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
           case RouteMode.app:
             List hierarchy = _curr.hierarchy.sublist(0, i + 1);
             String key = getRoute(hierarchy, "");
-            
+
             pages.add(MaterialPage(
                 //key: ValueKey(key),
                 child: AppHomeView(

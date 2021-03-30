@@ -4,8 +4,6 @@ import 'package:quizzywizzy/constants.dart';
 enum RouteMode {
   web,
   app,
-  questionId,
-  questionList,
 }
 
 /// Part of the routing_constants.dart file. This should only be used by the router.dart file.

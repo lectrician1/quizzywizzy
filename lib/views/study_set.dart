@@ -13,10 +13,10 @@ class StudySetView extends StatelessWidget {
   StudySetView({@required this.appHierarchy});
 
   FirebaseFirestore.instance
-  .collection('questions')
-  .where('age', isGreaterThan: 20)
-  .get()
-  .then(...);
+    .collection('questions')
+    .where('age', isGreaterThan: 20)
+    .get()
+    .then(...);
 
   Widget build(BuildContext context) {
     return BodyTemplate(
