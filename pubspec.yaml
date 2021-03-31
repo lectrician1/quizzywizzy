@@ -1,5 +1,5 @@
 name: quizzywizzy
-description: A new Flutter project.
+description: StudySprout is an app made by the class of Software Engineering 2 to allow students study from and contribute to collaborative study sets for their classes.
 
 #/ The following line prevents the package from being accidentally published to
 # pub.dev using `pub publish`. This is preferred for private packages.
@@ -25,10 +25,11 @@ dependencies:
     sdk: flutter
   flutter_web_plugins:
     sdk: flutter
-  firebase_auth: "^0.20.1"
+  firebase_core: ^1.0.1
+  firebase_auth: ^1.0.1
+  cloud_firestore: ^1.0.1
+  cloud_functions: ^1.0.0
   google_sign_in: ^4.5.3
-  firebase_core: "^0.7.0"
-  cloud_firestore: "^0.16.0"
   provider: ^4.3.3
   transparent_image: ^1.0.0
   get: ^3.26.0

@@ -42,6 +42,8 @@ String getWebRoute(List<String> hierarchy) => getRoute(hierarchy.sublist(1), "")
 List<String> get collectionNames => Constants.mainHierarchy;
 /// Part of the routing_constants.dart file. This should only be used by the router.dart file.
 const String urlName = Constants.docUrlName;
+/// Part of the routing_constants.dart file. This should only be used by the router.dart file.
+const String name = Constants.docName;
 
 /// a shortcut to [Constants.appPrefix] that is part of the routing_constants service.
 const String app = Constants.appPrefix;

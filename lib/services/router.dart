@@ -209,10 +209,13 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
                 QuerySnapshot query = await _visitedCollections[key].get();
                 _visitedQueryData[key] = [];
                 query.docs.forEach((doc) {
-                  _visitedQueryData[key].add(doc.data());
-                  if (i + 1 < collectionNames.length)
-                    _visitedCollections[appendRoute(doc.data()[urlName], key)] =
-                        doc.reference.collection(collectionNames[i + 1]);
+                  Map<String, dynamic> data = doc.data();
+                  if (data.containsKey(name) && data[name] is String && data.containsKey(urlName) && data[urlName] is String) {
+                    _visitedQueryData[key].add(doc.data());
+                    if (i + 1 < collectionNames.length)
+                      _visitedCollections[appendRoute(doc.data()[urlName], key)] =
+                          doc.reference.collection(collectionNames[i + 1]);
+                  }
                 });
               }
             } else {
