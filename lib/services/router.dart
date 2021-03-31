@@ -101,6 +101,10 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
         _visitedCollections = new HashMap(),
         _loading = false {
     _requested.addListener(_updateStack);
+
+    // Add root collection
+    _visitedCollections["/courses"] =
+        FirebaseFirestore.instance.collection(collectionNames[0]);
   }
 
   @override
@@ -166,27 +170,27 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
 
     switch (_hierarchy[0]) {
       case "courses":
-        for (int i = 1; i < _hierarchy.length; i++) {
+        for (int i = 0; i < _hierarchy.length; i++) {
           String key = getRoute(_hierarchy.sublist(0, i + 1), "");
           print(key);
+          print(_visitedCollections);
 
           // If the path has not been visited
-          if (!_visitedCollections.containsKey(key)) {
-            _visitedCollections[key] =
-                FirebaseFirestore.instance.collection(collectionNames[0]);
+          if (_visitedCollections.containsKey(key)) {
+            if (!_visitedQueryData.containsKey(key)) {
+              QuerySnapshot query = await _visitedCollections[key].get();
 
-            QuerySnapshot query = await _visitedCollections[key].get();
+              _visitedQueryData[key] = [];
 
-            _visitedQueryData[key] = [];
-
-            // Add each document in hierarchy collection to _visitedQueryData
-            query.docs.forEach((doc) {
-              _visitedQueryData[key].add(doc.data());
-
-              _visitedCollections[appendRoute(doc.data()["name"], key)] =
-                  doc.reference.collection(collectionNames[i + 1]);
-            });
+              query.docs.forEach((doc) {
+                _visitedQueryData[key].add(doc.data());
+                if (i + 1 < collectionNames.length)
+                  _visitedCollections[appendRoute(doc.data()["name"], key)] =
+                      doc.reference.collection(collectionNames[i + 1]);
+              });
+            }
           } else {
+            print("does not contain key");
             notFound = true;
           }
         }
@@ -278,11 +282,18 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
   List<Page<dynamic>> _getPages() {
     // Page stack in order
     List<Page<dynamic>> pages = [];
-
+    print(_curr.hierarchy);
     // Cases for handling the pages of each of the root paths
     switch (_curr.hierarchy[0]) {
       case "courses":
-        for (int i = 1; i < _curr.hierarchy.length; i++) {
+        // Add intial page
+        String key = getRoute(_curr.hierarchy.sublist(0, 1), "");
+        pages.add(MaterialPage(
+            child: AppHomeView(
+                appHierarchy: [], queryData: _visitedQueryData[key])));
+
+        // Add consecutive heirarchy pages
+        for (int i = 0; i < _curr.hierarchy.length; i++) {
           print(_curr.hierarchy);
           List hierarchy = _curr.hierarchy.sublist(1, i + 1);
           String key = getRoute(hierarchy, "");
@@ -291,6 +302,8 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
               //key: ValueKey(key),
               child: AppHomeView(
                   appHierarchy: hierarchy, queryData: _visitedQueryData[key])));
+
+          print(pages);
         }
         break;
       case "question":

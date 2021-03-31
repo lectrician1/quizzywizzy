@@ -22,7 +22,7 @@ String getRoute(List<String> hierarchy, String home) {
 
 /// Part of the routing_constants.dart file. This should only be used by the router.dart file.
 /// 
-/// Adds a route to the pathSegment
+/// Adds a pathSegment to a route
 String appendRoute(String pathSegment, String route) {
   return "$route/$pathSegment";
 }
