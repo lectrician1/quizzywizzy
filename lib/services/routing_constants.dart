@@ -1,16 +1,7 @@
-import 'package:quizzywizzy/constants.dart';
-
-/// Part of the routing_constants.dart file. This should only be used by the router.dart file.
-enum RouteMode {
-  web,
-  app,
-}
-
 /// Part of the routing_constants.dart file. This should only be used by the router.dart file.
 enum AdditionalPage {
   none,
-  notFound,
-  questionId,
+  notFound
 }
 
 /// Used to push PseudoPages (views without url segments)
@@ -21,6 +12,8 @@ enum PseudoPage {
 }
 
 /// Part of the routing_constants.dart file. This should only be used by the router.dart file.
+/// 
+/// Returns the route in the format of a Firestore reference
 String getRoute(List<String> hierarchy, String home) {
   String route = home;
   hierarchy.forEach((viewName) => route = "$route/$viewName");
@@ -28,6 +21,8 @@ String getRoute(List<String> hierarchy, String home) {
 }
 
 /// Part of the routing_constants.dart file. This should only be used by the router.dart file.
+/// 
+/// Adds a route to the pathSegment
 String appendRoute(String pathSegment, String route) {
   return "$route/$pathSegment";
 }
@@ -39,20 +34,6 @@ String getAppRoute(List<String> hierarchy) => getRoute(hierarchy, "");
 String getWebRoute(List<String> hierarchy) => getRoute(hierarchy.sublist(1), "");
 
 /// Part of the routing_constants.dart file. This should only be used by the router.dart file.
-List<String> get collectionNames => ["courses", "units", "topics", "subtopics"];
-
-/// Part of the routing_constants.dart file. This should only be used by the router.dart file.
-const String urlName = "url name";
-
-const String app = "app";
-
-/// a shortcut to [Constants.webPrefix] that is part of the routing_constants service.
 /// 
-/// Note: this actually isn't a prefix, but it is easier to code the router if we pretend that there is a web prefix.
-const String web = "web";
-
-/// a shortcut to [Constants.questionIDPrefix] that is part of the routing_constants service.
-const String questionID = "question";
-
-/// a shortcut to [Constants.questionListPrefix] that is part of the routing_constants service.
-const String questionList = "sprout_set";
+/// List of collections in hierarchy by level
+List<String> get collectionNames => ["courses", "units", "topics", "subtopics"];

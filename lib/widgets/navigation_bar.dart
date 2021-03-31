@@ -53,8 +53,7 @@ class NavigationBar extends StatelessWidget {
                   Align(
                     alignment: Alignment.center,
                     child: ConstrainedBox(
-                      constraints:
-                          BoxConstraints(maxWidth: constraintWidth),
+                      constraints: BoxConstraints(maxWidth: constraintWidth),
                       child: _getAppBarContent(context),
                     ),
                   ),
@@ -112,7 +111,7 @@ class NavigationBar extends StatelessWidget {
                   fit: BoxFit.fitHeight,
                   child: OutlinedButton(
                       child: Text("Home"),
-                      onPressed: () => delegate.setStack([web]),
+                      onPressed: () => delegate.setStack([]),
                       style: _NavTheme.leftButtonStyle),
                 ),
               ),
@@ -149,13 +148,15 @@ class NavigationBar extends StatelessWidget {
   }
 
   Widget _getProfile(BuildContext context) {
+    /*
     if (delegate.isWebMode())
       return OutlinedButton(
           onPressed: () {
-            delegate.setStack([app]);
+            delegate.setStack([]);
           },
           child: Text("Launch App"),
           style: _NavTheme.rightButtonStyle);
+          */
     final GoogleSignInAccount googleUser =
         Provider.of<GoogleSignInAccount>(context);
     if (googleUser == null)
