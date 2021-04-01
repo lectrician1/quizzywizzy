@@ -20,8 +20,7 @@ class _NavTheme {
   static ButtonStyle rightButtonStyle = ButtonStyle(
       side: MaterialStateProperty.all<BorderSide>(
           BorderSide(width: 0.5, color: foregroundColor)),
-      overlayColor:
-          MaterialStateProperty.all<Color>(hoverColor),
+      overlayColor: MaterialStateProperty.all<Color>(hoverColor),
       foregroundColor: MaterialStateProperty.all<Color>(foregroundColor));
   static TextStyle titleStyle = TextStyle(
     color: foregroundColor,
@@ -34,8 +33,12 @@ class _NavTheme {
 class NavigationBar extends StatelessWidget {
   final Widget child;
   final String title;
+  final double constraintWidth;
   final AppRouterDelegate delegate = Get.find<AppRouterDelegate>();
-  NavigationBar({@required this.title, @required this.child});
+  NavigationBar(
+      {@required this.title,
+      @required this.child,
+      @required this.constraintWidth});
 
   @override
   Widget build(BuildContext context) {
@@ -50,8 +53,7 @@ class NavigationBar extends StatelessWidget {
                   Align(
                     alignment: Alignment.center,
                     child: ConstrainedBox(
-                      constraints:
-                          BoxConstraints(maxWidth: Constants.constraintWidth),
+                      constraints: BoxConstraints(maxWidth: constraintWidth),
                       child: _getAppBarContent(context),
                     ),
                   ),
@@ -109,7 +111,7 @@ class NavigationBar extends StatelessWidget {
                   fit: BoxFit.fitHeight,
                   child: OutlinedButton(
                       child: Text("Home"),
-                      onPressed: () => delegate.setStack([web]),
+                      onPressed: () => delegate.setStack([]),
                       style: _NavTheme.leftButtonStyle),
                 ),
               ),
@@ -146,13 +148,15 @@ class NavigationBar extends StatelessWidget {
   }
 
   Widget _getProfile(BuildContext context) {
+    /*
     if (delegate.isWebMode())
       return OutlinedButton(
           onPressed: () {
-            delegate.setStack([app]);
+            delegate.setStack([]);
           },
           child: Text("Launch App"),
           style: _NavTheme.rightButtonStyle);
+          */
     final GoogleSignInAccount googleUser =
         Provider.of<GoogleSignInAccount>(context);
     if (googleUser == null)
