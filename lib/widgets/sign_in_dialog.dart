@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -203,7 +204,7 @@ class _SignInDialogButtonState extends State<SignInDialogButton>
                 Navigator.of(context).pop();
               }).catchError((e) {
                 provider.isLoading = false;
-                if (e is PlatformException) {
+                if (e is PlatformException || e is FirebaseAuthException) {
                   print(e.code);
                   print(e.message);
                   ScaffoldMessenger.of(context)

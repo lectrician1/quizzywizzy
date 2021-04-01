@@ -22,7 +22,6 @@ class AuthService {
         await _googleSignIn.signIn();
     final GoogleSignInAuthentication googleSignInAuthentication =
         await googleSignInAccount.authentication;
-
     if (_googleSignIn.currentUser != null)
       await validateEmail(_googleSignIn.currentUser.email);
 
@@ -33,7 +32,13 @@ class AuthService {
     final UserCredential authResult =
         await _auth.signInWithCredential(credential);
     IdTokenResult token = await authResult.user.getIdTokenResult();
-    _user.createInstance(authAccount: authResult.user, googleAccount: googleSignInAccount, role: token.claims["role"]);
+    if (token.claims.containsKey("role"))
+      _user.createInstance(authAccount: authResult.user, googleAccount: googleSignInAccount, role: token.claims["role"]);
+    else {
+      _user.createInstance(authAccount: authResult.user, googleAccount: googleSignInAccount, role: "student");
+      print("Failed to get role of user, defaulting to student");
+    }
+      
   }
 
   static Future<void> validateEmail(String email) async {
