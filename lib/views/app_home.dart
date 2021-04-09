@@ -41,7 +41,7 @@ class AppHomeView extends StatelessWidget {
                     text: docData["name"],
                     icon: Icons.ac_unit,
                     onTap: () {
-                      delegate.push(docData["name"]);
+                      delegate.push(docData["name"].replace(' ', '-'));
                       /*Navigator.of(context)
                                 .pushReplacementNamed(
                                     Constants.getCourseRoute(doc.data()["name"]));*/

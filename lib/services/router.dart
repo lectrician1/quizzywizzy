@@ -111,6 +111,8 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
   /// Key is the reference to the hierarcy collection that *can* be visited
   ///
   /// Value is the Firestore [CollectionReference]
+  /// 
+  /// Example map: ["/courses/AP Biology": CollectionReference(courses/cK93AhRq51tT4muADvaH/units]
   HashMap<String, CollectionReference> _visitedCollections;
 
   AppStack get currentConfiguration => _requested;
@@ -275,7 +277,7 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
                 /// (they're just not needed)
                 if (i + 1 < collectionNames.length)
                   _visitedCollections[
-                          appendRoute(doc.data()["name"], collection)] =
+                          appendRoute(doc.data()["name"].replace(' ', '-'), collection)] =
                       doc.reference.collection(collectionNames[i + 1]);
               });
             }
@@ -363,7 +365,7 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
     // _curr.hierarchy = [courses, apbc]
     switch (_curr.hierarchy[0]) {
       case "courses":
-        // Add heirarchy pages
+        /// Add heirarchy pages
         for (int i = 0; i < _curr.hierarchy.length; i++) {
           List hierarchy = _curr.hierarchy;
           String key = getRoute(hierarchy.sublist(0, i + 1), "");
