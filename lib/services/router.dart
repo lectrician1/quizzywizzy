@@ -10,6 +10,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 /// Routing constants
 import 'package:quizzywizzy/services/routing_constants.dart';
 
+/// Handy functions
+import 'package:quizzywizzy/functions.dart';
+
 /// Views
 import 'package:quizzywizzy/views/add_question.dart';
 import 'package:quizzywizzy/views/app_home.dart';
@@ -111,7 +114,7 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
   /// Key is the reference to the hierarcy collection that *can* be visited
   ///
   /// Value is the Firestore [CollectionReference]
-  /// 
+  ///
   /// Example map: ["/courses/AP Biology": CollectionReference(courses/cK93AhRq51tT4muADvaH/units]
   HashMap<String, CollectionReference> _visitedCollections;
 
@@ -256,29 +259,29 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
               /// Decalare null existance of entry before adding the data
               _visitedDocuments[collection] = [];
 
-              
-
               /// For each document...
               query.docs.forEach((doc) {
                 /// 4. Get the documents for each of the courses (AP Calculus BC, AP Biology, etc.)
-                
+
                 /// Add the document data with it's corresponding path to the [_visitedDocuments] collection
                 /// {/courses/AP Biology: [{name: Chemistry of life}]}
                 _visitedDocuments[collection].add(doc.data());
 
                 /// 5. Get the subcollection references for each of the course documents
-                /// 
+                ///
                 /// How this works:
                 /// _visitedCollections["/courses" + "/AP Calculus BC"] = subcollection with name "units" in the document
                 /// _visitedCollections["/courses/AP Calculus BC"] = /courses/AP Calculus BC courseDocumentId/units/coursesubCollectionId
 
-                /// Add the collection references with their new lower paths 
-                /// for courses, units, and topics; but not subtopics 
+                /// Add the collection references with their new lower paths
+                /// for courses, units, and topics; but not subtopics
                 /// (they're just not needed)
                 if (i + 1 < collectionNames.length)
-                  _visitedCollections[
-                          appendRoute(doc.data()["name"].replace(' ', '-'), collection)] =
-                      doc.reference.collection(collectionNames[i + 1]);
+                CollectionReference hierarcyCollection = doc.reference.collection(collectionNames[i + 1].;
+                  if (hierarcyCollection)
+                  _visitedCollections[appendRoute(
+                          encodeUri(doc.data()["name"]), collection)] =
+                      );
               });
             }
           }
@@ -356,22 +359,24 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
     // Page stack in order
     List<Page<dynamic>> pages = [];
 
-    print(_curr.hierarchy);
+    List hierarchy = _curr.hierarchy;
 
     // /courses/apbc
 
     // Cases for handling the pages of each of the root paths
 
     // _curr.hierarchy = [courses, apbc]
-    switch (_curr.hierarchy[0]) {
+    switch (hierarchy[0]) {
       case "courses":
+
         /// Add heirarchy pages
-        for (int i = 0; i < _curr.hierarchy.length; i++) {
-          List hierarchy = _curr.hierarchy;
+        for (int i = 0; i < hierarchy.length; i++) {
+          
           String key = getRoute(hierarchy.sublist(0, i + 1), "");
 
           pages.add(MaterialPage(
-              child: AppHomeView(
+              child: if (FirebaseFirestore.instance.collection('users').get())
+              AppHomeView(
                   appHierarchy: hierarchy.sublist(1, i + 1),
                   queryData: _visitedDocuments[key])));
         }

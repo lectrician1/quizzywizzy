@@ -111,7 +111,8 @@ class NavigationBar extends StatelessWidget {
                   fit: BoxFit.fitHeight,
                   child: OutlinedButton(
                       child: Text("Home"),
-                      onPressed: () => delegate.setStack([]),
+                      /// Set to "/courses" for now
+                      onPressed: () => delegate.setStack(["courses"]),
                       style: _NavTheme.leftButtonStyle),
                 ),
               ),

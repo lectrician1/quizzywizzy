@@ -1,6 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
+/// Router
 import 'package:quizzywizzy/services/router.dart';
+
+/// Handy functions
+import 'package:quizzywizzy/functions.dart';
+
+/// Widgets
 import 'package:quizzywizzy/widgets/body_template.dart';
 import 'package:quizzywizzy/widgets/selection_cell.dart';
 
@@ -41,7 +48,7 @@ class AppHomeView extends StatelessWidget {
                     text: docData["name"],
                     icon: Icons.ac_unit,
                     onTap: () {
-                      delegate.push(docData["name"].replace(' ', '-'));
+                      delegate.push(encodeUri(docData["name"]));
                       /*Navigator.of(context)
                                 .pushReplacementNamed(
                                     Constants.getCourseRoute(doc.data()["name"]));*/

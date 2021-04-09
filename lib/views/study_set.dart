@@ -3,9 +3,12 @@ import 'package:get/get.dart';
 import 'package:quizzywizzy/services/router.dart';
 import 'package:quizzywizzy/services/routing_constants.dart';
 import 'package:quizzywizzy/widgets/body_template.dart';
-// Import the firebase_core and cloud_firestore plugin
+
+/// Import the firebase_core and cloud_firestore plugin
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+
+
 
 class StudySetView extends StatelessWidget {
   final List<String> appHierarchy;
