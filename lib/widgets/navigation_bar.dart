@@ -176,7 +176,6 @@ class NavigationBar extends StatelessWidget {
                     context: context,
                     builder: (context) => SignInDialog(),
                     barrierDismissible: false);
-                //AuthService.signInWithGoogle();
               },
               child: Text("Sign In"),
               style: _NavTheme.rightButtonStyle),

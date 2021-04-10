@@ -38,7 +38,6 @@ class AuthService {
       _user.createInstance(authAccount: authResult.user, googleAccount: googleSignInAccount, role: "student");
       print("Failed to get role of user, defaulting to student");
     }
-      
   }
 
   static Future<void> validateEmail(String email) async {
@@ -61,7 +60,12 @@ class AuthService {
       if (_googleSignIn.currentUser != null) {
         await validateEmail(_googleSignIn.currentUser.email);
         IdTokenResult token = await _auth.currentUser.getIdTokenResult();
-        _user.createInstance(authAccount: _auth.currentUser, googleAccount: _googleSignIn.currentUser, role: token.claims["role"]);
+        if (token.claims.containsKey("role"))
+          _user.createInstance(authAccount: _auth.currentUser, googleAccount: _googleSignIn.currentUser, role: token.claims["role"]);
+        else {
+          _user.createInstance(authAccount: _auth.currentUser, googleAccount: _googleSignIn.currentUser, role: "student");
+          print("Failed to get role of user, defaulting to student");
+        }
       } 
     }
   }
