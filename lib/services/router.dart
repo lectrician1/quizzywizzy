@@ -119,31 +119,32 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
   HashMap<String, CollectionReference> _visitedCollections;
 
 /*
-  Map<String, dynamic> cache = [
-    "courses" = Map<String, dynamic> {
-      reference = CollectionReference
-      documents = List<Map<String, dynamic>> [
-        Map<Map> document = {
-          Map<String, dynamic> fields = {
-            name = "AP Calculus"
+  Map<String, dynamic> cache = {
+    "courses" : Map<String, dynamic> {
+      "reference" : CollectionReference
+      "documents" : [
+        {
+          "fields" : {
+            "name" : "AP Calculus"
           }
-          List<Map> collections = {
-            Map<String, dynamic> [
-              reference = CollectionReference(courses/cK93AhRq51tT4muADvaH)
-              List<Map<String, dynamic>> documents = { 
-                Map<Map> document = {
-                  Map<String, dynamic> fields = {
+          "collections" : List<Map> = [
+            {
+              "reference" : CollectionReference
+              "documents" : [ 
+                {
+                  "fields" : {
                     name = "Series"
                   }
                 }
-              }
-            ]
-          }
+              ]
+            }
+          ]
         }
         }
       ]
     }
-  ];
+    "questions" : ...
+  };
 */
 
   Map<String, dynamic> _cache;
@@ -164,8 +165,8 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
         _visitedDocuments = new HashMap(),
         _visitedCollections = new HashMap(),
         _cache = {
-          "courses" : {
-            "reference" : FirebaseFirestore.instance.collection("courses")
+          "courses": {
+            "reference": FirebaseFirestore.instance.collection("courses")
           }
         },
         _loading = false {
@@ -176,7 +177,6 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
     // Add root collection reference to
     _visitedCollections["courses"] =
         FirebaseFirestore.instance.collection(collectionNames[0]);
-
   }
 
   /// Build the [Navigator]-based router
