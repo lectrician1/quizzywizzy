@@ -23,7 +23,7 @@ import 'package:quizzywizzy/views/route_not_found.dart';
 
 /// A class that stores a list/stack of path segments (called [hierarchy]).
 ///
-/// e.g. [courses, AP Calculus BC]
+/// e.g. [courses, AP Calculus BC, units, Unit 1]
 ///
 /// It notifys any listeners whenever there is a change in the [hierarchy].
 ///
@@ -104,9 +104,9 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
 
   /// Local storage for hierarcy documents.
   ///
-  /// Key is the reference to the hierarcy document that has been visited
+  /// Key is the reference to the hierarcy level that has been visited
   ///
-  /// Value is the document data stored in a accessible [List]
+  /// Value is a List of each document present at the level
   HashMap<String, List<Map<String, dynamic>>> _visitedDocuments;
 
   /// Local storage for hierarcy collections.
@@ -115,7 +115,7 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
   ///
   /// Value is the Firestore [CollectionReference]
   ///
-  /// Example map: ["/courses/AP Biology": CollectionReference(courses/cK93AhRq51tT4muADvaH/units]
+  /// Example map: ["courses/AP Biology": CollectionReference(courses/cK93AhRq51tT4muADvaH/units]
   HashMap<String, CollectionReference> _visitedCollections;
 
   AppStack get currentConfiguration => _requested;
@@ -139,7 +139,7 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
     _requested.addListener(_updateStack);
 
     // Add root collection reference to
-    _visitedCollections["/courses"] =
+    _visitedCollections["courses"] =
         FirebaseFirestore.instance.collection(collectionNames[0]);
   }
 
@@ -227,67 +227,68 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
         /// Loop through each of the possible heierarchy levels to check
         /// if their Firestore collections and documents have been locally stored.
         for (int i = 0; i < _hierarchy.length; i++) {
-          /// Get the possible Firestore paths for each of the possible hierarchy collections
-          /// e.g. /courses, /courses/AP Calculus BC, /courses/AP Calculus/units/Series
-          String collection = getRoute(_hierarchy.sublist(0, i + 1), "");
+          /// Get the possible paths for each of the possible hierarchy collections
+          /// e.g. courses, courses/AP Calculus BC, courses/AP Calculus/Series
+          String level = getRoute(_hierarchy.sublist(0, i + 1));
+
+          //_visitedDocuments[level].first.containsKey("questions")
 
           /// ---
           /// Following #s represent how the for loop works
           /// when the coures page is first needed
           /// ---
 
-          /// 1. From line 141, [_visitedCollections] = {/courses: CollectionReference(courses)}
+          /// 1. From line 141, [_visitedCollections] = {courses: CollectionReference(courses)}
           /// so the root collection reference is already present.
 
           /// If local storage has a collection reference for the needed path
-          /// e.g. /courses/AP Biology: CollectionReference(courses/cK93AhRq51tT4muADvaH/units)
-          if (_visitedCollections.containsKey(collection)) {
+          /// e.g. courses/AP Biology: CollectionReference(courses/cK93AhRq51tT4muADvaH/units)
+          if (_visitedCollections.containsKey(level)) {
             /// 2. Therefore, we just need to retreive the data for each of the documents
             /// in the collection to display the course names.
             ///
-            /// There is no document for the /course root collection, but that is ok.
+            /// There is no document for the "course" root collection, but that is ok.
 
             /// If local storage DOES NOT have the document data for the needed path
-            /// e.g. /courses/AP Biology: null
-            if (!_visitedDocuments.containsKey(collection)) {
+            /// e.g. courses/AP Biology: null
+            if (!_visitedDocuments.containsKey(level)) {
               /// 3. We're here to retreive all of the documents in the /courses collection
               /// [.get()] does this
 
               /// course, untit, topic name, icon, etc. can be displayed
-              QuerySnapshot query = await _visitedCollections[collection].get();
+              QuerySnapshot query = await _visitedCollections[level].get();
 
               /// Decalare null existance of entry before adding the data
-              _visitedDocuments[collection] = [];
+              _visitedDocuments[level] = [];
 
               /// For each document...
               query.docs.forEach((doc) {
                 /// 4. Get the documents for each of the courses (AP Calculus BC, AP Biology, etc.)
 
                 /// Add the document data with it's corresponding path to the [_visitedDocuments] collection
-                /// {/courses/AP Biology: [{name: Chemistry of life}]}
-                _visitedDocuments[collection].add(doc.data());
+                /// {courses/AP Biology: [{name: Chemistry of life}]}
+                _visitedDocuments[level].add(doc.data());
 
                 /// 5. Get the subcollection references for each of the course documents
                 ///
                 /// How this works:
-                /// _visitedCollections["/courses" + "/AP Calculus BC"] = subcollection with name "units" in the document
-                /// _visitedCollections["/courses/AP Calculus BC"] = /courses/AP Calculus BC courseDocumentId/units/coursesubCollectionId
+                /// _visitedCollections["courses" + "/AP Calculus BC"] = subcollection with name "units" in the document
+                /// _visitedCollections["courses/ap-biology/chemistry-of-life/structure-of-water-and-hydrogen-bonding"] = courses/AP Calculus BC courseDocumentId/units/coursesubCollectionId
 
                 /// Add the collection references with their new lower paths
                 /// for courses, units, and topics; but not subtopics
                 /// (they're just not needed)
-                if (i + 1 < collectionNames.length)
-                CollectionReference hierarcyCollection = doc.reference.collection(collectionNames[i + 1].;
-                  if (hierarcyCollection)
-                  _visitedCollections[appendRoute(
-                          encodeUri(doc.data()["name"]), collection)] =
-                      );
+                if (i < collectionNames.length) {
+                  _visitedCollections[
+                          appendRoute(level, encodeUri(doc.data()["name"]))] =
+                      doc.reference.collection(collectionNames[i + 1]);
+                }
               });
             }
           }
 
           /// If local storage DOES NOT have a collection reference for the needed path
-          /// e.g. /courses/troll: null
+          /// e.g. courses/troll: null
           else {
             notFound = true;
           }
@@ -307,8 +308,8 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
         /// This is demonstrated through the usage of the for loop.
         ///
         /// The for loop always starts with checking if the:
-        /// 1. "/courses" collection reference exists
-        /// 2. "/courses" collection documents' data exists
+        /// 1. "courses" collection reference exists
+        /// 2. "courses" collection documents' data exists
         ///
         /// If both are true, the for loop will proceed checking the path
         /// that includes the next level in the hierarchy.
@@ -321,13 +322,13 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
         /// i = 1
         ///
         /// THEN
-        /// collection = "/courses/AP Calculus BC"
+        /// collection = "courses/AP Calculus BC"
         ///
         /// SO
-        /// 1. Check if "/courses/AP Calculus BC" collection reference exists
+        /// 1. Check if "courses/AP Calculus BC" collection reference exists
         ///   It DOES exist because the reference was added when the "/courses"
         ///   document data was added.
-        /// 2. Check if "/courses/AP Calculus BC" collection documents' data exists
+        /// 2. Check if "courses/AP Calculus BC" collection documents' data exists
         ///   It DOES NOT exist, so the data AND next collection references will
         ///   be added to local storage.
         ///
@@ -361,24 +362,24 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
 
     List hierarchy = _curr.hierarchy;
 
-    // /courses/apbc
-
-    // Cases for handling the pages of each of the root paths
-
-    // _curr.hierarchy = [courses, apbc]
+    /// Cases for handling the pages of each of the root paths
     switch (hierarchy[0]) {
       case "courses":
 
         /// Add heirarchy pages
         for (int i = 0; i < hierarchy.length; i++) {
-          
-          String key = getRoute(hierarchy.sublist(0, i + 1), "");
+          String level = getRoute(hierarchy.sublist(0, i + 1));
+          print(level);
 
-          pages.add(MaterialPage(
-              child: if (FirebaseFirestore.instance.collection('users').get())
-              AppHomeView(
-                  appHierarchy: hierarchy.sublist(1, i + 1),
-                  queryData: _visitedDocuments[key])));
+          if (_visitedDocuments[level].first.containsKey("questions")) {
+            pages.add(MaterialPage(
+                child: StudySetView(queryData: _visitedDocuments[level])));
+          } else {
+            pages.add(MaterialPage(
+                child: AppHomeView(
+                    appHierarchy: hierarchy.sublist(1, i + 1),
+                    queryData: _visitedDocuments[level])));
+          }
         }
         break;
       case "question":
@@ -406,11 +407,7 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
 
     // Show loading view if page is loading.
     if (_loading) {
-      pages += [
-        MaterialPage(
-            //key: ValueKey(getRoute(_curr.hierarchy, "loading")),
-            child: LoadingView())
-      ];
+      pages += [MaterialPage(child: LoadingView())];
       return pages;
     }
 
@@ -419,9 +416,7 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
         break;
       case AdditionalPage.notFound:
         pages += [
-          MaterialPage(
-              //key: ValueKey(getRoute(_curr.hierarchy, "not-found")),
-              child: RouteNotFoundView(name: Uri.base.toString()))
+          MaterialPage(child: RouteNotFoundView(name: Uri.base.toString()))
         ];
         break;
     }
@@ -447,7 +442,7 @@ class AppRouteInformationParser extends RouteInformationParser<AppStack> {
   @override
   RouteInformation restoreRouteInformation(AppStack page) {
     RouteInformation route;
-    route = RouteInformation(location: getAppRoute(page.hierarchy));
+    route = RouteInformation(location: getRoute(page.hierarchy));
     return route;
   }
 }

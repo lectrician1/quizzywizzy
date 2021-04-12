@@ -11,9 +11,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 
 class StudySetView extends StatelessWidget {
-  final List<String> appHierarchy;
+  final List<Map<String, dynamic>> queryData;
+
   final AppRouterDelegate delegate = Get.find<AppRouterDelegate>();
-  StudySetView({@required this.appHierarchy});
+
+  StudySetView({@required this.queryData});
 
   /*
   FirebaseFirestore.instance
