@@ -4,6 +4,9 @@ import 'package:get/get.dart';
 /// Router
 import 'package:quizzywizzy/services/router.dart';
 
+/// Cache
+import 'package:quizzywizzy/services/cache.dart';
+
 /// Handy functions
 import 'package:quizzywizzy/functions.dart';
 
@@ -53,7 +56,8 @@ class AppHomeView extends StatelessWidget {
                                 .pushReplacementNamed(
                                     Constants.getCourseRoute(doc.data()["name"]));*/
                     }))
-                .toList().cast<Widget>(),
+                .toList()
+                .cast<Widget>(),
           ),
         ),
       ],

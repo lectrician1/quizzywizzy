@@ -23,7 +23,7 @@ import 'package:quizzywizzy/views/route_not_found.dart';
 
 /// A class that stores a list/stack of path segments (called [hierarchy]).
 ///
-/// e.g. [courses, AP Calculus BC, units, Unit 1]
+/// e.g. [courses, AP Calculus BC, Unit 1]
 ///
 /// It notifys any listeners whenever there is a change in the [hierarchy].
 ///
@@ -118,37 +118,6 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
   /// Example map: ["courses/AP Biology": CollectionReference(courses/cK93AhRq51tT4muADvaH/units]
   HashMap<String, CollectionReference> _visitedCollections;
 
-/*
-  Map<String, dynamic> cache = {
-    "courses" : Map<String, dynamic> {
-      "reference" : CollectionReference
-      "documents" : [
-        {
-          "fields" : {
-            "name" : "AP Calculus"
-          }
-          "collections" : List<Map> = [
-            {
-              "reference" : CollectionReference
-              "documents" : [ 
-                {
-                  "fields" : {
-                    name = "Series"
-                  }
-                }
-              ]
-            }
-          ]
-        }
-        }
-      ]
-    }
-    "questions" : ...
-  };
-*/
-
-  Map<String, dynamic> _cache;
-
   AppStack get currentConfiguration => _requested;
 
   /// Main constructor that initializes all of the needed AppStacks for the router
@@ -164,11 +133,6 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
         /// Initialize local storage
         _visitedDocuments = new HashMap(),
         _visitedCollections = new HashMap(),
-        _cache = {
-          "courses": {
-            "reference": FirebaseFirestore.instance.collection("courses")
-          }
-        },
         _loading = false {
     /// Add [_updateStack] as listener function
     /// [_updateStack] is called every time [_requested] is changed
