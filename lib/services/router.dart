@@ -116,7 +116,7 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
 
         /// Courses needs to be in the current heirarchy or else getPages will never know what the "first page" is.
         /// This is temporary until an actual homepage is created and getPages can account for no first hierarchy
-        _curr = AppStack(hierarchy: []),
+        _curr = AppStack(hierarchy: ["courses"]),
         _additionalPage = AdditionalPage.none,
 
         /// Initialize local storage

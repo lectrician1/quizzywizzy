@@ -4,9 +4,10 @@
       "reference" : CollectionReference
       "documents" : {
         "ap-calculus" : {
+          "view" : "questions",
           "fields" : {
             "name" : "AP Calculus"
-          }
+          },
           "collection" : {
             "reference" : CollectionReference
             "questions" : false
@@ -43,9 +44,12 @@ class Cache {
   Future<bool> storeDocs(List hierarchy) async {
     print(hierarchy);
     Map collection = _cache[hierarchy[0]];
+    print(collection["documents"]);
 
     for (int i = 0; i <= hierarchy.length; i++) {
-      if (collection["documents"].isEmpty()) {
+      if (collection["documents"].isEmpty) {
+        print("ok");
+        print(collection["reference"]);
         QuerySnapshot query = await collection["reference"].get();
 
         if (collection["view"] == "questions") {
