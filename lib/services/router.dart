@@ -212,11 +212,10 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
 
     List hierarchyLevels = _cache.getLevels(hierarchy);
 
-    print(hierarchyLevels);
-
     /// Cases for handling the pages of each of the root paths
     switch (hierarchy[0]) {
       case "courses":
+        print(hierarchyLevels);
 
         /// Add heirarchy pages
         for (Map level in hierarchyLevels) {
@@ -224,13 +223,12 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
             pages.add(MaterialPage(
                 child: StudySetView(questionsDocs: level["documents"])));
           } else {
+            var docs = level["documents"]
+                .entries
+                .map((doc) => doc.value["fields"])
+                .toList();
             pages.add(MaterialPage(
-                child: AppHomeView(
-                    level: level["view"],
-                    docs: level["documents"]
-                        .entries
-                        .map((doc) => doc.value)
-                        .toList())));
+                child: AppHomeView(level: level["view"], docs: docs)));
           }
         }
         break;
@@ -241,7 +239,6 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
       case "user":
         break;
       default:
-        print("oh");
         break;
     }
 

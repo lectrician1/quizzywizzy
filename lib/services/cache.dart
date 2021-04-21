@@ -42,14 +42,12 @@ class Cache {
   }
 
   Future<bool> storeDocs(List hierarchy) async {
-    print(hierarchy);
     Map collection = _cache[hierarchy[0]];
-    print(collection["documents"]);
 
-    for (int i = 0; i <= hierarchy.length; i++) {
+    int nextLevel = 1;
+
+    while (nextLevel <= hierarchy.length) {
       if (collection["documents"].isEmpty) {
-        print("ok");
-        print(collection["reference"]);
         QuerySnapshot query = await collection["reference"].get();
 
         if (collection["view"] == "questions") {
@@ -59,7 +57,7 @@ class Cache {
           query.docs.forEach((docSnap) {
             collection["documents"].add(docSnap.data());
           });
-          i = hierarchy.length + 1;
+          break;
         } else {
           /// Declare documents as [Map] (required)
           collection["documents"] = {};
@@ -70,13 +68,13 @@ class Cache {
             String view = "level";
             CollectionReference collectionReference;
 
-            if (fields["questions"]) {
+            if (fields["questions"] != null && fields["questions"]) {
               view = "questions";
               collectionReference = docSnap.reference.collection("questions");
             } else {
-              view = collectionNames[i + 1];
+              view = collectionNames[nextLevel];
               collectionReference =
-                  docSnap.reference.collection(collectionNames[i + 1]);
+                  docSnap.reference.collection(collectionNames[nextLevel]);
             }
 
             collection["documents"][fields["url"]] = {
@@ -90,11 +88,15 @@ class Cache {
           });
         }
       }
-
-      if (collection["documents"][hierarchy[i + 1]] == null)
-        return true;
-      else
-        collection = collection["documents"][hierarchy[i + 1]]["collection"];
+      if (nextLevel != hierarchy.length) {
+        if (collection["documents"][hierarchy[nextLevel]] == null)
+          return true;
+        else
+          collection =
+              collection["documents"][hierarchy[nextLevel]]["collection"];
+      } else
+        break;
+      nextLevel++;
     }
 
     return false;
@@ -102,9 +104,13 @@ class Cache {
 
   List<Map> getLevels(List hierarchy) {
     /// Docs in hierarchy order
-    List<Map> levels;
+    List<Map> levels = [];
+
+    print(_cache);
+    print(hierarchy);
 
     Map collection = _cache[hierarchy[0]];
+    levels.add(collection);
 
     for (int i = 1; i < hierarchy.length; i++) {
       levels.add(collection);

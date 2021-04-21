@@ -13,7 +13,7 @@ import 'package:quizzywizzy/widgets/selection_cell.dart';
 
 class AppHomeView extends StatelessWidget {
   final String level;
-  final List<Map<String, dynamic>> docs;
+  final List docs;
   final AppRouterDelegate delegate = Get.find<AppRouterDelegate>();
   AppHomeView({@required this.level, @required this.docs});
   Widget build(BuildContext context) {
