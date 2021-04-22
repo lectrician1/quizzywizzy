@@ -215,7 +215,6 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
     /// Cases for handling the pages of each of the root paths
     switch (hierarchy[0]) {
       case "courses":
-        print(hierarchyLevels);
 
         /// Add heirarchy pages
         for (Map level in hierarchyLevels) {
@@ -223,12 +222,8 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
             pages.add(MaterialPage(
                 child: StudySetView(questionsDocs: level["documents"])));
           } else {
-            var docs = level["documents"]
-                .entries
-                .map((doc) => doc.value["fields"])
-                .toList();
             pages.add(MaterialPage(
-                child: AppHomeView(level: level["view"], docs: docs)));
+                child: AppHomeView(level: level["view"], docs: level["docs"])));
           }
         }
         break;

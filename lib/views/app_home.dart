@@ -27,7 +27,7 @@ class AppHomeView extends StatelessWidget {
         Center(
             child: Container(
           padding: EdgeInsets.symmetric(vertical: 40),
-          child: Text("Select a $level",
+          child: Text(level.capitalize,
               style: TextStyle(
                 fontSize: 40,
               )),
@@ -37,12 +37,12 @@ class AppHomeView extends StatelessWidget {
             runSpacing: 10,
             spacing: 10,
             alignment: WrapAlignment.center,
-            children: docs.map((fields) =>
+            children: docs.map((doc) =>
               SelectionCell(
-                  text: fields["name"],
+                  text: doc["name"],
                   icon: Icons.ac_unit,
                   onTap: () {
-                    delegate.push(fields["url"]);
+                    delegate.push(doc["url"]);
                   })
               )
               .toList()

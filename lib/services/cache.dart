@@ -1,16 +1,16 @@
 /*
   Map<String, dynamic> cache = {
     "courses" : {
-      "reference" : CollectionReference
+      "reference" : CollectionReference,
+      "view" : "Courses",
       "documents" : {
         "ap-calculus" : {
-          "view" : "questions",
           "fields" : {
             "name" : "AP Calculus"
           },
           "collection" : {
             "reference" : CollectionReference
-            "questions" : false
+            "view" : "Units"
             "documents" : [ 
               {
                 "fields" : {
@@ -103,20 +103,32 @@ class Cache {
   }
 
   List<Map> getLevels(List hierarchy) {
+    print(_cache);
+
     /// Docs in hierarchy order
     List<Map> levels = [];
 
-    print(_cache);
-    print(hierarchy);
+    void addLevel(List levels, Map collection) {
+      levels.add({
+        "view": collection["view"],
+        "docs": collection["documents"]
+            .entries
+            .map((doc) => doc.value["fields"])
+            .toList()
+      });
+    }
 
     Map collection = _cache[hierarchy[0]];
-    levels.add(collection);
+
+    addLevel(levels, collection);
 
     for (int i = 1; i < hierarchy.length; i++) {
-      levels.add(collection);
-
       collection = collection["documents"][hierarchy[i]]["collection"];
+
+      addLevel(levels, collection);
     }
+
+    print("levels: $levels");
 
     return levels;
   }
