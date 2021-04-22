@@ -22,33 +22,88 @@ class MyCustomFormState extends State<MyCustomForm> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         Padding(
-          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           child: TextField(
             decoration: InputDecoration(
               border: OutlineInputBorder(),
-              hintText: 'greyout static',
+              hintText: 'question title',
             ),
           ),
         ),
           Padding(
-          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           child: TextField(
             decoration: InputDecoration(
               border: OutlineInputBorder(),
               hintText: 'greyout static',
-            ),
-          ),
-        ),
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 16),
-          child: TextFormField(
-            decoration: InputDecoration(
-              border: UnderlineInputBorder(),
-              labelText: 'greyout dynamic',
             ),
           ),
         ),
       ],
     );
+  }
+}
+
+class DynamicallyCheckbox extends StatefulWidget {
+  @override
+  DynamicallyCheckboxState createState() => new DynamicallyCheckboxState();
+}
+
+class DynamicallyCheckboxState extends State {
+
+  Map<String, bool> List = {
+    'A' : false,
+    'B' : false,
+    'C' : false,
+  };
+
+  var holder_1 = [];
+
+  getItems(){
+    List.forEach((key, value) {
+      if(value == true)
+      {
+        holder_1.add(key);
+      }
+    });
+
+    print(holder_1);
+    holder_1.clear();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column (children: <Widget>[
+      
+      Expanded(
+        child :
+        ListView(
+          children: List.keys.map((String key) {
+            return new CheckboxListTile(
+              title: new Text(key),
+              value: List[key],
+              activeColor: Colors.green[400],
+              checkColor: Colors.white,
+              onChanged: (bool value) {
+                setState(() {
+                  List[key] = value;
+                });
+              },
+            );
+          }).toList(),
+        ),
+      ),
+    
+        RaisedButton(
+        child: Text(" Enter"),
+        onPressed: getItems,
+        color: Colors.green,
+        textColor: Colors.white,
+        splashColor: Colors.grey,
+        padding: EdgeInsets.fromLTRB(10, 10, 10, 10),
+      ),
+    
+    ]);
+    
   }
 }
