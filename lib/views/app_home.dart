@@ -4,9 +4,6 @@ import 'package:get/get.dart';
 /// Router
 import 'package:quizzywizzy/services/router.dart';
 
-/// Handy functions
-import 'package:quizzywizzy/functions.dart';
-
 /// Widgets
 import 'package:quizzywizzy/widgets/body_template.dart';
 import 'package:quizzywizzy/widgets/selection_cell.dart';

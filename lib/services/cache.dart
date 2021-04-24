@@ -124,8 +124,14 @@ class Cache {
 
     for (int i = 1; i < hierarchy.length; i++) {
       collection = collection["documents"][hierarchy[i]]["collection"];
+      String view = collection["view"];
 
-      addLevel(levels, collection);
+      if (view == "questions") {
+        levels
+            .add({"view": view, "docs": collection["documents"]});
+      }
+      else
+        addLevel(levels, collection);
     }
 
     print("levels: $levels");

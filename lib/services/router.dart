@@ -220,7 +220,7 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
         for (Map level in hierarchyLevels) {
           if (level["view"] == "questions") {
             pages.add(MaterialPage(
-                child: StudySetView(questionsDocs: level["documents"])));
+                child: StudySetView(docs: level["docs"])));
           } else {
             pages.add(MaterialPage(
                 child: AppHomeView(level: level["view"], docs: level["docs"])));
