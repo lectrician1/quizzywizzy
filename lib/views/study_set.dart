@@ -75,22 +75,23 @@ class MyListView extends StatefulWidget {
 
 class _MyListViewState extends State<MyListView> {
   List<Map> items = [
-    { 
-      "rating": 5, 
-      "name": "Which of the following observations is best explained by water’s high surface tension?"
-    },
     {
-      "rating": 3, 
-      "name": "ok"
+      "rating": 5,
+      "name":
+          "Which of the following observations is best explained by water’s high surface tension?a aaaaaaaaaaaaaaaaaaaaaaa aaaaaaaaaaaaaaaaaa aaaaaaaaaaaaaaaaaaaaaaaa"
     },
+    {"rating": 3, "name": "ok"},
+    {"rating": 4, "name": "yes"},
   ];
+
+  Color textColor = Color(0);
 
   void _reverse() {
     setState(() {
       items = items.reversed.toList();
     });
   }
-  
+
   void _sort() {
     setState(() {
       items.sort((a, b) => a["rating"].compareTo(b["rating"]));
@@ -101,21 +102,38 @@ class _MyListViewState extends State<MyListView> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
+        minimum: EdgeInsets.all(10.0),
         child: ListView.custom(
           childrenDelegate: SliverChildBuilderDelegate(
-            (BuildContext context, int index) {
-              return KeepAlive(
-                data: items[index]["name"],
-                key: ValueKey<int>(index),
-              );
-            },
-            childCount: items.length,
-            findChildIndexCallback: (Key key) {
-              final ValueKey valueKey = key as ValueKey;
-              final int data = valueKey.value;
-              return data;
-            }
-          ),
+              (BuildContext context, int index) {
+                return Card(
+                    margin: const EdgeInsets.all(10.0),
+                  clipBehavior: Clip.antiAlias,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15.0),
+                    ),
+                    key: ValueKey<int>(index),
+                    child: Material(
+                        color: Colors.blue,
+                        child: InkWell(
+                            splashColor: Colors.red,
+                            hoverColor: Colors.blue[600],
+                            onTap: _sort,
+                            child: Container(
+                                padding: const EdgeInsets.all(20.0),
+                                child: Text(
+                                  items[index]["name"],
+                                  textAlign: TextAlign.center,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                )))));
+              },
+              childCount: items.length,
+              findChildIndexCallback: (Key key) {
+                final ValueKey valueKey = key as ValueKey;
+                final int data = valueKey.value;
+                return data;
+              }),
         ),
       ),
       bottomNavigationBar: BottomAppBar(
@@ -134,29 +152,6 @@ class _MyListViewState extends State<MyListView> {
         ),
       ),
     );
-  }
-}
-
-class KeepAlive extends StatefulWidget {
-  const KeepAlive({
-    required Key key,
-    required this.data,
-  }) : super(key: key);
-
-  final String data;
-
-  @override
-  _KeepAliveState createState() => _KeepAliveState();
-}
-
-class _KeepAliveState extends State<KeepAlive> with AutomaticKeepAliveClientMixin{
-  @override
-  bool get wantKeepAlive => true;
-
-  @override
-  Widget build(BuildContext context) {
-    super.build(context);
-    return Text(widget.data);
   }
 }
 */
