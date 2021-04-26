@@ -4,48 +4,95 @@ import 'package:quizzywizzy/services/router.dart';
 import 'package:quizzywizzy/services/routing_constants.dart';
 import 'package:quizzywizzy/widgets/body_template.dart';
 
-
-
-class StudySetView extends StatelessWidget {
+class StudySetView extends StatefulWidget {
   final List docs;
 
   final AppRouterDelegate delegate = Get.find<AppRouterDelegate>();
 
   StudySetView({@required this.docs});
 
-  /*
-  FirebaseFirestore.instance
-    .collection('questions')
-    .where('age', isGreaterThan: 20)
-    .get()
-    .then(...);
-  */
+  @override
+  _StudySetViewState createState() => _StudySetViewState();
+}
+
+class _StudySetViewState extends State<StudySetView> {
+  List docs;
+
+  void _sortRating() {
+    setState(() {
+      docs.sort((a, b) => a["rating"].compareTo(b["rating"]));
+    });
+  }
 
   Widget build(BuildContext context) {
+    docs = widget.docs;
     return BodyTemplate(
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          ListView.builder(
-            shrinkWrap: true,
-            padding: const EdgeInsets.all(8),
-            itemCount: docs[0]["questions"].length,
-            itemBuilder: (context, index) {
-              return Text(docs[0]["questions"][index]["name"]);
+        child: Stack(fit: StackFit.expand, children: [
+      ListView.custom(
+        childrenDelegate: SliverChildBuilderDelegate(
+            (BuildContext context, int index) {
+              return Card(
+                  margin: const EdgeInsets.all(10.0),
+                  clipBehavior: Clip.antiAlias,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15.0),
+                  ),
+                  key: ValueKey<int>(index),
+                  child: Material(
+                      color: Colors.blue,
+                      child: InkWell(
+                          splashColor: Colors.red,
+                          hoverColor: Colors.blue[600],
+                          onTap: _sort,
+                          child: Container(
+                              padding: const EdgeInsets.all(20.0),
+                              child: Text(
+                                docs[0]["questions"][index]["name"],
+                                textAlign: TextAlign.center,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              )))));
             },
-          ),
-          Positioned(
-            bottom: 20,
-            right: 20,
-            child: FloatingActionButton(
-              onPressed: () => delegate.pushPseudo(PseudoPage.addQuestion),
-              tooltip: 'Add Question',
-              child: Icon(Icons.add),
-            ),
-          ),
-        ],
+            childCount: docs[0]["questions"].length,
+            findChildIndexCallback: (Key key) {
+              final ValueKey valueKey = key as ValueKey;
+              final int data = valueKey.value;
+              return data;
+            }),
       ),
-    );
+      Positioned(
+        bottom: 20,
+        right: 20,
+        child: FloatingActionButton(
+          onPressed: () => widget.delegate.pushPseudo(PseudoPage.addQuestion),
+          tooltip: 'Add Question',
+          child: Icon(Icons.add),
+        ),
+      ),
+      Positioned(
+          bottom: 20,
+          left: 20,
+          child: PopupMenuButton(
+            itemBuilder: (BuildContext context) => <PopupMenuEntry>[
+              const PopupMenuItem<void>(
+                value: _sortRating(),
+                child: Text('Rating'),
+              ),
+              const PopupMenuItem<WhyFarther>(
+                value: WhyFarther.smarter,
+                child: Text('Being a lot smarter'),
+              ),
+              const PopupMenuItem<WhyFarther>(
+                value: WhyFarther.selfStarter,
+                child: Text('Being a self-starter'),
+              ),
+              const PopupMenuItem<WhyFarther>(
+                value: WhyFarther.tradingCharter,
+                child: Text('Placed in charge of trading charter'),
+              ),
+            ],
+          ))
+    ]));
   }
 }
 
