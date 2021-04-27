@@ -97,6 +97,9 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
   /// A stack that represents the currently rendered pages.
   AppStack _curr;
 
+  /// Temporary route that still holds normal pages under it in [_curr]
+  AppStack _temp;
+
   /// Represents any additional page.
   ///
   /// See [AdditionalPage] enum for more details.
@@ -119,8 +122,11 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
         _curr = AppStack(hierarchy: ["courses"]),
         _additionalPage = AdditionalPage.none,
 
+        _temp = AppStack(hierarchy: []),
+
         /// Initialize local storage
         _cache = new Cache(),
+
         _loading = false {
     /// Add [_updateStack] as listener function
     /// [_updateStack] is called every time [_requested] is changed
@@ -164,6 +170,8 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
     if (_loading) return;
     _requested.pushPseudo(pseudoPage);
   }
+
+  void pushTemp()
 
   /// updates [_requested] stack. All calls will be ignored if [_loading] == true.
   void setStack(List<String> hierarchy) {
@@ -219,8 +227,8 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
         /// Add heirarchy pages
         for (Map level in hierarchyLevels) {
           if (level["view"] == "questions") {
-            pages.add(MaterialPage(
-                child: StudySetView(docs: level["docs"])));
+            pages.add(
+                MaterialPage(child: StudySetView(questions: level["docs"])));
           } else {
             pages.add(MaterialPage(
                 child: AppHomeView(level: level["view"], docs: level["docs"])));

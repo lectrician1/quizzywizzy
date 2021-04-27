@@ -4,28 +4,24 @@ import 'package:quizzywizzy/services/router.dart';
 import 'package:quizzywizzy/services/routing_constants.dart';
 import 'package:quizzywizzy/widgets/body_template.dart';
 
+enum Sort { ratingHigh, ratingLow }
+
 class StudySetView extends StatefulWidget {
-  final List docs;
+  final List questions;
 
   final AppRouterDelegate delegate = Get.find<AppRouterDelegate>();
 
-  StudySetView({@required this.docs});
+  StudySetView({@required this.questions});
 
   @override
   _StudySetViewState createState() => _StudySetViewState();
 }
 
 class _StudySetViewState extends State<StudySetView> {
-  List docs;
-
-  void _sortRating() {
-    setState(() {
-      docs.sort((a, b) => a["rating"].compareTo(b["rating"]));
-    });
-  }
+  List questions;
 
   Widget build(BuildContext context) {
-    docs = widget.docs;
+    questions = widget.questions;
     return BodyTemplate(
         child: Stack(fit: StackFit.expand, children: [
       ListView.custom(
@@ -43,17 +39,17 @@ class _StudySetViewState extends State<StudySetView> {
                       child: InkWell(
                           splashColor: Colors.red,
                           hoverColor: Colors.blue[600],
-                          onTap: _sort,
+                          // onTap: ,
                           child: Container(
                               padding: const EdgeInsets.all(20.0),
                               child: Text(
-                                docs[0]["questions"][index]["name"],
+                                questions[index]["name"],
                                 textAlign: TextAlign.center,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               )))));
             },
-            childCount: docs[0]["questions"].length,
+            childCount: questions.length,
             findChildIndexCallback: (Key key) {
               final ValueKey valueKey = key as ValueKey;
               final int data = valueKey.value;
@@ -72,24 +68,31 @@ class _StudySetViewState extends State<StudySetView> {
       Positioned(
           bottom: 20,
           left: 20,
-          child: PopupMenuButton(
-            itemBuilder: (BuildContext context) => <PopupMenuEntry>[
-              const PopupMenuItem<void>(
-                value: _sortRating(),
-                child: Text('Rating'),
+          child: PopupMenuButton<Sort>(
+            icon: Icon(Icons.sort),
+            onSelected: (Sort selected) {
+              setState(() {
+                switch (selected) {
+                  case Sort.ratingHigh:
+                    questions
+                        .sort((a, b) => b["rating"].compareTo(a["rating"]));
+                    break;
+                  case Sort.ratingLow:
+                    questions
+                        .sort((a, b) => a["rating"].compareTo(b["rating"]));
+                    break;
+                }
+              });
+            },
+            itemBuilder: (BuildContext context) => <PopupMenuEntry<Sort>>[
+              const PopupMenuItem<Sort>(
+                value: Sort.ratingHigh,
+                child: Text('Rating High to Low'),
               ),
-              const PopupMenuItem<WhyFarther>(
-                value: WhyFarther.smarter,
-                child: Text('Being a lot smarter'),
-              ),
-              const PopupMenuItem<WhyFarther>(
-                value: WhyFarther.selfStarter,
-                child: Text('Being a self-starter'),
-              ),
-              const PopupMenuItem<WhyFarther>(
-                value: WhyFarther.tradingCharter,
-                child: Text('Placed in charge of trading charter'),
-              ),
+              const PopupMenuItem<Sort>(
+                value: Sort.ratingLow,
+                child: Text('Rating Low to High'),
+              )
             ],
           ))
     ]));

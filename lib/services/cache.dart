@@ -55,7 +55,7 @@ class Cache {
           collection["documents"] = [];
 
           query.docs.forEach((docSnap) {
-            collection["documents"].add(docSnap.data());
+            collection["documents"].addAll(docSnap.data()["questions"]);
           });
           break;
         } else {
