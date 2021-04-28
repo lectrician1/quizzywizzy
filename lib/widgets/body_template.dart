@@ -20,13 +20,11 @@ class BodyTemplate extends StatelessWidget {
         child: Scrollbar(
           child: Align(
             alignment: Alignment.topCenter,
-            child: Stack(
-              children: [
-                Container(
-                  constraints: BoxConstraints(maxWidth: constraintWidth),
-                  child: child,
-                ),
-              ],
+            child: LayoutBuilder(
+              builder: (context, constraints) => Container(
+                width: (constraints.maxWidth > constraintWidth) ? constraintWidth : constraints.maxWidth,
+                child: child,
+              ),
             ),
           ),
         ),

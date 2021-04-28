@@ -24,7 +24,7 @@ class Constants {
   ];
 
   static const String docName = "name";
-  static const String docUrlName = "url name";
+  static const String docUrlName = "url";
   
   static const double constraintWidth = 1150;
 }
