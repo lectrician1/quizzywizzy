@@ -18,15 +18,6 @@ import 'package:url_strategy/url_strategy.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  if (Constants.emulatorUsed) {
-    FirebaseFirestore.instance.settings = Settings(
-        host: Constants.getFirestoreHost(
-            defaultTargetPlatform == TargetPlatform.android),
-        sslEnabled: false);
-    FirebaseFunctions.instance.useFunctionsEmulator(
-        origin: Constants.getFunctionsHost(
-            defaultTargetPlatform == TargetPlatform.android));
-  }
   await AuthService.signInSilently();
   //configureApp();
 
