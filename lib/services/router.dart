@@ -201,7 +201,7 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
 
     /// Always set that there is no additional page when updateStack is called.
     _additionalPage = AdditionalPage.none;
-
+    
     if (await _cache.storeDocs(_requested.hierarchy))
       _additionalPage = AdditionalPage.notFound;
 

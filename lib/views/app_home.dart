@@ -31,22 +31,29 @@ class AppHomeView extends StatelessWidget {
         )),
         SingleChildScrollView(
           child: Wrap(
-            runSpacing: 10,
-            spacing: 10,
+            runSpacing: 20,
+            spacing: 20,
             alignment: WrapAlignment.center,
-            children: docs.map((doc) =>
-              SelectionCell(
-                  text: doc["name"],
-                  icon: Icons.ac_unit,
-                  onTap: () {
-                    delegate.push(doc["url"]);
-                  })
-              )
-              .toList()
-              .cast<Widget>(),
+            children: queryData
+                .map((doc) {
+                  return SelectionCell(
+                    icon: Icons.ac_unit,
+                    text: doc["name"],
+                    type: doc.containsKey("questions") ? (doc["questions"] ? 1 : 0) : 2,
+                    onTap: () {
+                      delegate.push(doc["url"]);
+                    });})
+                .toList()
+                .cast<Widget>(),
           ),
         ),
       ],
     );
   }
 }
+
+
+
+
+
+

@@ -1,4 +1,6 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:quizzywizzy/widgets/custom_snack_bars.dart';
 import 'package:transparent_image/transparent_image.dart';
@@ -66,7 +68,7 @@ class SignInDialogDomain extends StatelessWidget {
             Expanded(
               child: Center(
                 child: Text(
-                  "I have a whitelisted email | Privacy Policy",
+                  "Terms of Use | Privacy Policy",
                   style: TextStyle(fontSize: 10),
                 ),
               ),
@@ -76,7 +78,6 @@ class SignInDialogDomain extends StatelessWidget {
         ));
   }
 }
-
 class SignInDialogWindow extends StatelessWidget {
   final Widget top;
   final Widget body;
@@ -202,14 +203,16 @@ class _SignInDialogButtonState extends State<SignInDialogButton>
                 Navigator.of(context).pop();
               }).catchError((e) {
                 provider.isLoading = false;
-                print(e.code);
-                print(e.message);
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context)
+                if (e is PlatformException || e is FirebaseAuthException) {
+                  print(e.code);
+                  print(e.message);
+                  ScaffoldMessenger.of(context)
                   ..removeCurrentSnackBar()
-                  ..showSnackBar(ErrorSnackBar(
-                      text:
-                          "Unable to complete sign in process: ${AuthService.getMessageFromGoogleSignInErrorCode(e)}"));
+                  ..showSnackBar(ErrorSnackBar(text: "Unable to complete sign in process: ${AuthService.getMessageFromSignInErrorCode(e)}"));
+                } else {
+                  print(e);
+                }
+                Navigator.of(context).pop();
               });
             },
             child: SignInButtonTemplate(
