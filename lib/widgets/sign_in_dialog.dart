@@ -5,7 +5,6 @@ import 'package:provider/provider.dart';
 import 'package:quizzywizzy/widgets/custom_snack_bars.dart';
 import 'package:transparent_image/transparent_image.dart';
 import 'package:quizzywizzy/services/auth_service.dart';
-import 'package:quizzywizzy/constants.dart';
 
 class SignInDialog extends StatefulWidget {
   @override
@@ -36,7 +35,7 @@ class SignInDialogDomain extends StatelessWidget {
                   Expanded(
                     child: FittedBox(
                         fit: BoxFit.fitHeight,
-                        child: Text("Sign In to ${Constants.title}")),
+                        child: Text("Sign In to StudySprout")),
                     flex: 2,
                   ),
                   Spacer(flex: 1),

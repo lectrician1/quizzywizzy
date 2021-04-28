@@ -13,6 +13,7 @@ import 'package:flutter/foundation.dart';
 //import 'package:quizzywizzy/services/configure_nonweb.dart' if (dart.library.html) 'package:quizzywizzy/services/configure_web.dart';
 import 'package:quizzywizzy/services/router.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:url_strategy/url_strategy.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -28,6 +29,9 @@ Future<void> main() async {
   }
   await AuthService.signInSilently();
   //configureApp();
+
+  setPathUrlStrategy();
+  
   runApp(QuizzyWizzyApp());
 }
 

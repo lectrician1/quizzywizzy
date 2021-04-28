@@ -37,9 +37,12 @@ class _NavTheme {
 class NavigationBar extends StatelessWidget {
   final Widget child;
   final String title;
+  final double constraintWidth;
   final AppRouterDelegate delegate = Get.find<AppRouterDelegate>();
-  // ignore: close_sinks
-  NavigationBar({@required this.title, @required this.child});
+  NavigationBar(
+      {@required this.title,
+      @required this.child,
+      @required this.constraintWidth});
 
   @override
   Widget build(BuildContext context) {
@@ -54,8 +57,7 @@ class NavigationBar extends StatelessWidget {
                   Align(
                     alignment: Alignment.center,
                     child: ConstrainedBox(
-                      constraints:
-                          BoxConstraints(maxWidth: Constants.constraintWidth),
+                      constraints: BoxConstraints(maxWidth: constraintWidth),
                       child: _getAppBarContent(context),
                     ),
                   ),
@@ -114,7 +116,8 @@ class NavigationBar extends StatelessWidget {
                   fit: BoxFit.fitHeight,
                   child: OutlinedButton(
                       child: Text("Home"),
-                      onPressed: () => delegate.setStack([web]),
+                      /// Set to "/courses" for now
+                      onPressed: () => delegate.setStack(["courses"]),
                       style: _NavTheme.leftButtonStyle),
                 ),
               ),
@@ -150,37 +153,28 @@ class NavigationBar extends StatelessWidget {
     );
   }
 
-  Widget _getProfile(AppUser user, BuildContext context) {
+  Widget _getProfile(BuildContext context) {
+    /*
     if (delegate.isWebMode())
-      return FractionallySizedBox(
-        heightFactor: 0.45,
-        child: FittedBox(
-          fit: BoxFit.fitHeight,
-          child: OutlinedButton(
-              onPressed: () {
-                delegate.setStack([app]);
-              },
-              child: Text("Launch App"),
-              style: _NavTheme.rightButtonStyle),
-        ),
-      );
+      return OutlinedButton(
+          onPressed: () {
+            delegate.setStack([]);
+          },
+          child: Text("Launch App"),
+          style: _NavTheme.rightButtonStyle);
+          */
     final AppUser user = Provider.of<AppUser>(context);
     if (!user.exists)
-      return FractionallySizedBox(
-        heightFactor: 0.45,
-        child: FittedBox(
-          fit: BoxFit.fitHeight,
-          child: OutlinedButton(
-              onPressed: () {
-                showDialog(
-                    context: context,
-                    builder: (context) => SignInDialog(),
-                    barrierDismissible: false);
-              },
-              child: Text("Sign In"),
-              style: _NavTheme.rightButtonStyle),
-        ),
-      );
+      return OutlinedButton(
+          onPressed: () {
+            showDialog(
+                context: context,
+                builder: (context) => SignInDialog(),
+                barrierDismissible: false);
+            //AuthService.signInWithGoogle();
+          },
+          child: Text("Sign In"),
+          style: _NavTheme.rightButtonStyle);
     return PopupMenuButton(
         tooltip: "Show Profile Menu",
         onSelected: (value) {

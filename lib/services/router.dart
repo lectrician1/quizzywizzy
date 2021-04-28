@@ -1,10 +1,17 @@
 import 'dart:collection';
-import 'package:cloud_firestore/cloud_firestore.dart';
+
+/// Needed to create views
 import 'package:flutter/material.dart';
+
+/// Cache
+import 'package:quizzywizzy/services/cache.dart';
+
+/// Routing constants
 import 'package:quizzywizzy/services/routing_constants.dart';
+
+/// Views
 import 'package:quizzywizzy/views/add_question.dart';
 import 'package:quizzywizzy/views/app_home.dart';
-import 'package:quizzywizzy/views/home.dart';
 import 'package:quizzywizzy/views/loading.dart';
 import 'package:quizzywizzy/views/single_question.dart';
 import 'package:quizzywizzy/views/study_set.dart';
@@ -12,39 +19,64 @@ import 'package:quizzywizzy/views/route_not_found.dart';
 
 /// A class that stores a list/stack of path segments (called [hierarchy]).
 ///
-/// Notifys any listeners whenever there is a change in the [hierarchy].
+/// e.g. [courses, AP Calculus BC, Unit 1]
+///
+/// It notifys any listeners whenever there is a change in the [hierarchy].
+///
+/// It is used for requested and curren
 class AppStack extends ChangeNotifier {
   List<String> _hierarchy;
+  List<String> _lastHierarchy;
   List<String> get hierarchy => _hierarchy;
+
   PseudoPage _pseudoPage = PseudoPage.none;
   PseudoPage get pseudoPage => _pseudoPage;
+
   AppStack({@required List<String> hierarchy}) : _hierarchy = hierarchy;
+
+  /// Set a new hierarchy
+  ///
+  /// Used to set the requested url
   void setStack(List<String> otherHierarchy) {
     _hierarchy = List.from(otherHierarchy);
     _pseudoPage = PseudoPage.none;
     notifyListeners();
   }
 
+  /// Set a new hierarchy using a existing AppStack
   void copyCurrStack(AppStack curr) {
     _hierarchy = List.from(curr._hierarchy);
     _pseudoPage = curr._pseudoPage;
   }
 
+  /// Set a new hierarchy using a existing AppStack
   void copyRequestedStack(AppStack requested) {
     _hierarchy = List.from(requested._hierarchy);
     _pseudoPage = requested._pseudoPage;
   }
 
+  /// Remove a page from the hierarchy
   void pop() {
-    if (_pseudoPage == PseudoPage.none) _hierarchy.removeLast();
-    else _pseudoPage = PseudoPage.none;
+    if (_pseudoPage == PseudoPage.none)
+      _hierarchy.removeLast();
+    else if (_lastHierarchy != null) {
+      _hierarchy = _lastHierarchy;
+      _lastHierarchy = null;
+    } else
+      _pseudoPage = PseudoPage.none;
     notifyListeners();
   }
 
+  /// Add a page to the hierarchy and view stack
   void push(String pathSegment) {
     _hierarchy.add(pathSegment);
     _pseudoPage = PseudoPage.none;
     notifyListeners();
+  }
+
+  void pushTemp(List<String> newHierarchy) {
+    _lastHierarchy = _hierarchy;
+    _hierarchy = newHierarchy;
   }
 
   void pushPseudo(PseudoPage page) {
@@ -77,25 +109,29 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
   /// Represents whether or not [_updateStack] has already been called.
   bool _loading;
 
-  /// Local storage for url queries.
-  HashMap<String, List<Map<String, dynamic>>> _visitedQueryData;
-
-  /// Local storage for collections.
-  HashMap<String, CollectionReference> _visitedCollections;
+  Cache _cache;
 
   AppStack get currentConfiguration => _requested;
 
+  /// Main constructor that initializes all of the needed AppStacks for the router
   AppRouterDelegate()
       : navigatorKey = GlobalKey<NavigatorState>(),
-        _requested = AppStack(hierarchy: [web]),
-        _curr = AppStack(hierarchy: [web]),
+        _requested = AppStack(hierarchy: []),
+
+        /// Courses needs to be in the current heirarchy or else getPages will never know what the "first page" is.
+        /// This is temporary until an actual homepage is created and getPages can account for no first hierarchy
+        _curr = AppStack(hierarchy: ["courses"]),
         _additionalPage = AdditionalPage.none,
-        _visitedQueryData = new HashMap(),
-        _visitedCollections = new HashMap(),
+
+        /// Initialize local storage
+        _cache = new Cache(),
         _loading = false {
+    /// Add [_updateStack] as listener function
+    /// [_updateStack] is called every time [_requested] is changed
     _requested.addListener(_updateStack);
   }
 
+  /// Build the [Navigator]-based router
   @override
   Widget build(BuildContext context) {
     return Navigator(
@@ -108,14 +144,6 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
   bool canPop() {
     return _additionalPage != AdditionalPage.none ||
         _requested.hierarchy.length > 1;
-  }
-
-  bool isWebMode() {
-    return _curr.hierarchy[0] == web;
-  }
-
-  bool isAppMode() {
-    return _curr.hierarchy[0] == app;
   }
 
   /// pops [_requested] stack. All calls will be ignored if [_loading] == true.
@@ -135,6 +163,11 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
     _requested.push(pathSegment);
   }
 
+  void pushTemp(List<String> newHierarchy) {
+    if (_loading) return;
+    _requested.pushTemp(newHierarchy);
+  }
+
   /// pushes a pseudo path on to [_requested] stack. All calls will be ignored if [_loading] == true.
   void pushPseudo(PseudoPage pseudoPage) {
     if (_loading) return;
@@ -149,6 +182,10 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
 
   /// Updates the [_curr] stack.
   ///
+  /// Runs whenever a page is requested
+  ///
+  /// DETAILED DECRIPTION:
+  ///
   /// Rebuilds the navigator (calling [_getPages] in the process) whenever it changes [_status]. It does so whenever it calls [notifyListeners].
   /// (In Navigator 2.0, a pre-programmed Router class listens to [AppRouterDelegate] and calls the delegate's [build] whenever the Router is notified.)
   ///
@@ -161,135 +198,55 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
     if (_loading) return;
     _loading = true;
     notifyListeners();
-    bool notFound = false;
-    RouteMode mode = RouteMode.app;
+
+    /// Always set that there is no additional page when updateStack is called.
     _additionalPage = AdditionalPage.none;
-    // use an else if statement in the for loop if you want a change in mode
-    // any changes in mode will cause any subsequent path segments in the requested hierarchy to be evaluated based on the mode, unless if another else if statement changes the mode later on
-    for (int i = 0; i < _requested.hierarchy.length; i++) {
-      if (notFound) break;
-      if (i == 0 && _requested.hierarchy[i] == web) {
-        // if 0th hierarchy && current path segment is web:
-        mode = RouteMode.web;
-      } else if (i == 0 && _requested.hierarchy[i] == app) {
-        // if 0th hierarchy && current path segment is app:
-        String key = getRoute(_requested.hierarchy.sublist(0, i + 1), "");
-        if (!_visitedCollections.containsKey(key)) {
-          _visitedCollections[key] =
-              FirebaseFirestore.instance.collection(collectionNames[0]);
-          QuerySnapshot query = await _visitedCollections[key].get();
-          _visitedQueryData[key] = [];
-          query.docs.forEach((doc) {
-            _visitedQueryData[key].add(doc.data());
-            _visitedCollections[appendRoute(doc.data()[urlName], key)] =
-                doc.reference.collection(collectionNames[1]);
-          });
-        }
-        mode = RouteMode.app;
-      } else if (i == 1 &&
-          _requested.hierarchy[0] == app &&
-          _requested.hierarchy[i] == questionID) {
-        // if 1st hierarchy && 0th path segment is app && current path segment is questionID:
-        if (_requested.hierarchy.length != 3) notFound = true;
-        mode = RouteMode.questionId;
-      } else if (i > 1 &&
-          _requested.hierarchy[0] == app &&
-          _requested.hierarchy[i] == questionList) {
-        // if past 1st hierarchy && 0th path segment is app && current path segment is questionList:
-        mode = RouteMode.questionList;
-      } else {
-        switch (mode) {
-          case RouteMode.web:
-            notFound = true;
-            break;
-          case RouteMode.app:
-            String key = getRoute(_requested.hierarchy.sublist(0, i + 1), "");
-            if (_visitedCollections.containsKey(key)) {
-              if (!_visitedQueryData.containsKey(key)) {
-                QuerySnapshot query = await _visitedCollections[key].get();
-                _visitedQueryData[key] = [];
-                query.docs.forEach((doc) {
-                  Map<String, dynamic> data = doc.data();
-                  if (data.containsKey(name) && data[name] is String && data.containsKey(urlName) && data[urlName] is String) {
-                    _visitedQueryData[key].add(doc.data());
-                    if (i + 1 < collectionNames.length)
-                      _visitedCollections[appendRoute(doc.data()[urlName], key)] =
-                          doc.reference.collection(collectionNames[i + 1]);
-                  }
-                });
-              }
-            } else {
-              notFound = true;
-            }
-            break;
-          case RouteMode.questionId:
-            _additionalPage = AdditionalPage.questionId;
-            break;
-          case RouteMode.questionList:
-            notFound = true;
-            break;
-        }
-      }
-    }
-    if (notFound) _additionalPage = AdditionalPage.notFound;
+    
+    if (await _cache.storeDocs(_requested.hierarchy))
+      _additionalPage = AdditionalPage.notFound;
+
     if (_additionalPage == AdditionalPage.none)
       _curr.copyRequestedStack(_requested);
     _loading = false;
+
     notifyListeners();
   }
 
   /// Generates pages for the [Navigator] based on [_curr] and [_additionalPage]
   List<Page<dynamic>> _getPages() {
+    // Page stack in order
     List<Page<dynamic>> pages = [];
-    RouteMode mode = RouteMode.app;
-    String questionID = "";
-    // the structure of the if else statements & switch statement of this for loop should match exactly with the for loop in _updateStack
-    for (int i = 0; i < _curr.hierarchy.length; i++) {
-      if (i == 0 && _curr.hierarchy[i] == web) {
-        // if 0th hierarchy && current path segment is web:
-        pages.add(MaterialPage(child: HomeView()));
-        mode = RouteMode.web;
-      } else if (i == 0 && _curr.hierarchy[i] == app) {
-        // if 0th hierarchy && current path segment is app:
-        String key = getRoute(_curr.hierarchy.sublist(0, i + 1), "");
-        pages.add(MaterialPage(
-            child: AppHomeView(
-                appHierarchy: [], queryData: _visitedQueryData[key])));
-        mode = RouteMode.app;
-      } else if (i == 1 &&
-          _curr.hierarchy[0] == app &&
-          _curr.hierarchy[i] == questionID) {
-        // if 1st hierarchy && 0th path segment is app && current path segment is questionID:
-        mode = RouteMode.questionId;
-      } else if (i > 1 &&
-          _curr.hierarchy[0] == app &&
-          _curr.hierarchy[i] == questionList) {
-        // if past 1st hierarchy && 0th path segment is app && current path segment is questionList:
-        pages.add(MaterialPage(
-            child: StudySetView(
-                appHierarchy: _curr.hierarchy.sublist(1, i + 1))));
-        mode = RouteMode.questionList;
-      } else {
-        switch (mode) {
-          case RouteMode.web:
-            break;
-          case RouteMode.app:
-            String key = getRoute(_curr.hierarchy.sublist(0, i + 1), "");
+
+    List hierarchy = _curr.hierarchy;
+
+    List hierarchyLevels = _cache.getLevels(hierarchy);
+
+    /// Cases for handling the pages of each of the root paths
+    switch (hierarchy[0]) {
+      case "courses":
+
+        /// Add heirarchy pages
+        for (Map level in hierarchyLevels) {
+          if (level["view"] == "questions") {
+            pages.add(
+                MaterialPage(child: StudySetView(questions: level["docs"])));
+          } else {
             pages.add(MaterialPage(
-                //key: ValueKey(key),
-                child: AppHomeView(
-                    appHierarchy: _curr.hierarchy.sublist(1, i + 1),
-                    queryData: _visitedQueryData[key])));
-            break;
-          case RouteMode.questionId:
-            questionID = _curr.hierarchy[i];
-            break;
-          case RouteMode.questionList:
-            break;
+                child: AppHomeView(level: level["view"], docs: level["docs"])));
+          }
         }
-      }
+        break;
+      case "question":
+        break;
+      case "sproutset":
+        break;
+      case "user":
+        break;
+      default:
+        break;
     }
-    // handles creation of pseudo-pages (views without url segments)
+
+    // Handle creation of pseudo-pages (views without url segments).
     switch (_curr._pseudoPage) {
       case PseudoPage.none:
         break;
@@ -300,27 +257,20 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
         pages.add(MaterialPage(child: SingleQuestionView()));
         break;
     }
+
+    // Show loading view if page is loading.
     if (_loading) {
-      pages += [
-        MaterialPage(
-            //key: ValueKey(getRoute(_curr.hierarchy, "loading")),
-            child: LoadingView())
-      ];
+      pages += [MaterialPage(child: LoadingView())];
       return pages;
     }
+
     switch (_additionalPage) {
       case AdditionalPage.none:
         break;
       case AdditionalPage.notFound:
         pages += [
-          MaterialPage(
-              //key: ValueKey(getRoute(_curr.hierarchy, "not-found")),
-              child: RouteNotFoundView(name: Uri.base.toString()))
+          MaterialPage(child: RouteNotFoundView(name: Uri.base.toString()))
         ];
-        break;
-      case AdditionalPage.questionId:
-        pages.add(MaterialPage(
-            child: SingleQuestionView.id(id: questionID)));
         break;
     }
     return pages;
@@ -339,22 +289,13 @@ class AppRouteInformationParser extends RouteInformationParser<AppStack> {
   Future<AppStack> parseRouteInformation(
       RouteInformation routeInformation) async {
     final uri = Uri.parse(routeInformation.location);
-    if (uri.pathSegments.length >= 1 && uri.pathSegments[0] == app)
-      return AppStack(hierarchy: uri.pathSegments);
-    return AppStack(hierarchy: [web] + uri.pathSegments);
+    return AppStack(hierarchy: uri.pathSegments);
   }
 
   @override
   RouteInformation restoreRouteInformation(AppStack page) {
     RouteInformation route;
-    switch (page.hierarchy[0]) {
-      case web:
-        route = RouteInformation(location: getWebRoute(page.hierarchy));
-        break;
-      case app:
-        route = RouteInformation(location: getAppRoute(page.hierarchy));
-        break;
-    }
+    route = RouteInformation(location: getRoute(page.hierarchy));
     return route;
   }
 }
