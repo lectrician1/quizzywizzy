@@ -3,18 +3,11 @@ import 'dart:collection';
 /// Needed to create views
 import 'package:flutter/material.dart';
 
-/// Firestore
-/// Needed for storing hierarchy data locally
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 /// Cache
 import 'package:quizzywizzy/services/cache.dart';
 
 /// Routing constants
 import 'package:quizzywizzy/services/routing_constants.dart';
-
-/// Handy functions
-import 'package:quizzywizzy/functions.dart';
 
 /// Views
 import 'package:quizzywizzy/views/add_question.dart';
@@ -33,6 +26,7 @@ import 'package:quizzywizzy/views/route_not_found.dart';
 /// It is used for requested and curren
 class AppStack extends ChangeNotifier {
   List<String> _hierarchy;
+  List<String> _lastHierarchy;
   List<String> get hierarchy => _hierarchy;
 
   PseudoPage _pseudoPage = PseudoPage.none;
@@ -41,6 +35,8 @@ class AppStack extends ChangeNotifier {
   AppStack({@required List<String> hierarchy}) : _hierarchy = hierarchy;
 
   /// Set a new hierarchy
+  ///
+  /// Used to set the requested url
   void setStack(List<String> otherHierarchy) {
     _hierarchy = List.from(otherHierarchy);
     _pseudoPage = PseudoPage.none;
@@ -63,7 +59,10 @@ class AppStack extends ChangeNotifier {
   void pop() {
     if (_pseudoPage == PseudoPage.none)
       _hierarchy.removeLast();
-    else
+    else if (_lastHierarchy != null) {
+      _hierarchy = _lastHierarchy;
+      _lastHierarchy = null;
+    } else
       _pseudoPage = PseudoPage.none;
     notifyListeners();
   }
@@ -73,6 +72,11 @@ class AppStack extends ChangeNotifier {
     _hierarchy.add(pathSegment);
     _pseudoPage = PseudoPage.none;
     notifyListeners();
+  }
+
+  void pushTemp(List<String> newHierarchy) {
+    _lastHierarchy = _hierarchy;
+    _hierarchy = newHierarchy;
   }
 
   void pushPseudo(PseudoPage page) {
@@ -97,9 +101,6 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
   /// A stack that represents the currently rendered pages.
   AppStack _curr;
 
-  /// Temporary route that still holds normal pages under it in [_curr]
-  AppStack _temp;
-
   /// Represents any additional page.
   ///
   /// See [AdditionalPage] enum for more details.
@@ -122,11 +123,8 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
         _curr = AppStack(hierarchy: ["courses"]),
         _additionalPage = AdditionalPage.none,
 
-        _temp = AppStack(hierarchy: []),
-
         /// Initialize local storage
         _cache = new Cache(),
-
         _loading = false {
     /// Add [_updateStack] as listener function
     /// [_updateStack] is called every time [_requested] is changed
@@ -165,13 +163,16 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
     _requested.push(pathSegment);
   }
 
+  void pushTemp(List<String> newHierarchy) {
+    if (_loading) return;
+    _requested.pushTemp(newHierarchy);
+  }
+
   /// pushes a pseudo path on to [_requested] stack. All calls will be ignored if [_loading] == true.
   void pushPseudo(PseudoPage pseudoPage) {
     if (_loading) return;
     _requested.pushPseudo(pseudoPage);
   }
-
-  void pushTemp()
 
   /// updates [_requested] stack. All calls will be ignored if [_loading] == true.
   void setStack(List<String> hierarchy) {
