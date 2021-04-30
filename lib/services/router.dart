@@ -1,17 +1,11 @@
-import 'dart:collection';
-
 /// Needed to create views
 import 'package:flutter/material.dart';
 
-/// Firestore
-/// Needed for storing hierarchy data locally
-import 'package:cloud_firestore/cloud_firestore.dart';
+/// Cache
+import 'package:quizzywizzy/services/cache.dart';
 
 /// Routing constants
 import 'package:quizzywizzy/services/routing_constants.dart';
-
-/// Handy functions
-import 'package:quizzywizzy/functions.dart';
 
 /// Views
 import 'package:quizzywizzy/views/add_question.dart';
@@ -23,13 +17,14 @@ import 'package:quizzywizzy/views/route_not_found.dart';
 
 /// A class that stores a list/stack of path segments (called [hierarchy]).
 ///
-/// e.g. [courses, AP Calculus BC, units, Unit 1]
+/// e.g. [courses, AP Calculus BC, Unit 1]
 ///
 /// It notifys any listeners whenever there is a change in the [hierarchy].
 ///
 /// It is used for requested and curren
 class AppStack extends ChangeNotifier {
   List<String> _hierarchy;
+  List<String> _lastHierarchy;
   List<String> get hierarchy => _hierarchy;
 
   PseudoPage _pseudoPage = PseudoPage.none;
@@ -38,6 +33,8 @@ class AppStack extends ChangeNotifier {
   AppStack({@required List<String> hierarchy}) : _hierarchy = hierarchy;
 
   /// Set a new hierarchy
+  ///
+  /// Used to set the requested url
   void setStack(List<String> otherHierarchy) {
     _hierarchy = List.from(otherHierarchy);
     _pseudoPage = PseudoPage.none;
@@ -60,7 +57,10 @@ class AppStack extends ChangeNotifier {
   void pop() {
     if (_pseudoPage == PseudoPage.none)
       _hierarchy.removeLast();
-    else
+    else if (_lastHierarchy != null) {
+      _hierarchy = _lastHierarchy;
+      _lastHierarchy = null;
+    } else
       _pseudoPage = PseudoPage.none;
     notifyListeners();
   }
@@ -70,6 +70,11 @@ class AppStack extends ChangeNotifier {
     _hierarchy.add(pathSegment);
     _pseudoPage = PseudoPage.none;
     notifyListeners();
+  }
+
+  void pushTemp(List<String> newHierarchy) {
+    _lastHierarchy = _hierarchy;
+    _hierarchy = newHierarchy;
   }
 
   void pushPseudo(PseudoPage page) {
@@ -102,21 +107,7 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
   /// Represents whether or not [_updateStack] has already been called.
   bool _loading;
 
-  /// Local storage for hierarcy documents.
-  ///
-  /// Key is the reference to the hierarcy level that has been visited
-  ///
-  /// Value is a List of each document present at the level
-  HashMap<String, List<Map<String, dynamic>>> _visitedDocuments;
-
-  /// Local storage for hierarcy collections.
-  ///
-  /// Key is the reference to the hierarcy collection that *can* be visited
-  ///
-  /// Value is the Firestore [CollectionReference]
-  ///
-  /// Example map: ["courses/AP Biology": CollectionReference(courses/cK93AhRq51tT4muADvaH/units]
-  HashMap<String, CollectionReference> _visitedCollections;
+  Cache _cache;
 
   AppStack get currentConfiguration => _requested;
 
@@ -131,8 +122,7 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
         _additionalPage = AdditionalPage.none,
 
         /// Initialize local storage
-        _visitedDocuments = new HashMap(),
-        _visitedCollections = new HashMap(),
+        _cache = new Cache(),
         _loading = false {
     /// Add [_updateStack] as listener function
     /// [_updateStack] is called every time [_requested] is changed
@@ -175,6 +165,11 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
     _requested.push(pathSegment);
   }
 
+  void pushTemp(List<String> newHierarchy) {
+    if (_loading) return;
+    _requested.pushTemp(newHierarchy);
+  }
+
   /// pushes a pseudo path on to [_requested] stack. All calls will be ignored if [_loading] == true.
   void pushPseudo(PseudoPage pseudoPage) {
     if (_loading) return;
@@ -206,147 +201,11 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
     _loading = true;
     notifyListeners();
 
-    /// Always set notFound as false when updateStack is called.
-    bool notFound = false;
-
     /// Always set that there is no additional page when updateStack is called.
     _additionalPage = AdditionalPage.none;
 
-    /// Represents the hierarchy
-    /// e.g. [courses, AP Calculus BC]
-    /// Also a simplification variable
-    List<String> _hierarchy = _requested.hierarchy;
-
-    /// Check the first value of the hierarchy
-    switch (_hierarchy[0]) {
-
-      /// If "courses" is the first value.
-      /// e.g. studysprout.org/courses
-      case "courses":
-
-        /// Loop through each of the possible heierarchy levels to check
-        /// if their Firestore collections and documents have been locally stored.
-        for (int i = 0; i < _hierarchy.length; i++) {
-          /// Get the possible paths for each of the possible hierarchy collections
-          /// e.g. courses, courses/AP Calculus BC, courses/AP Calculus/Series
-          String level = getRoute(_hierarchy.sublist(0, i + 1));
-
-          //_visitedDocuments[level].first.containsKey("questions")
-
-          /// ---
-          /// Following #s represent how the for loop works
-          /// when the coures page is first needed
-          /// ---
-
-          /// 1. From line 141, [_visitedCollections] = {courses: CollectionReference(courses)}
-          /// so the root collection reference is already present.
-
-          /// If local storage has a collection reference for the needed path
-          /// e.g. courses/AP Biology: CollectionReference(courses/cK93AhRq51tT4muADvaH/units)
-          if (_visitedCollections.containsKey(level)) {
-            /// 2. Therefore, we just need to retreive the data for each of the documents
-            /// in the collection to display the course names.
-            ///
-            /// There is no document for the "course" root collection, but that is ok.
-
-            /// If local storage DOES NOT have the document data for the needed path
-            /// e.g. courses/AP Biology: null
-            if (!_visitedDocuments.containsKey(level)) {
-              /// 3. We're here to retreive all of the documents in the /courses collection
-              /// [.get()] does this
-
-              /// course, untit, topic name, icon, etc. can be displayed
-              QuerySnapshot query = await _visitedCollections[level].get();
-
-              /// Decalare null existance of entry before adding the data
-              _visitedDocuments[level] = [];
-
-              /// For each document...
-              query.docs.forEach((doc) {
-                /// 4. Get the documents for each of the courses (AP Calculus BC, AP Biology, etc.)
-
-                /// Add the document data with it's corresponding path to the [_visitedDocuments] collection
-                /// {courses/AP Biology: [{name: Chemistry of life}]}
-                _visitedDocuments[level].add(doc.data());
-
-                /// 5. Get the subcollection references for each of the course documents
-                ///
-                /// How this works:
-                /// _visitedCollections["courses" + "/AP Calculus BC"] = subcollection with name "units" in the document
-                /// _visitedCollections["courses/ap-biology/chemistry-of-life/structure-of-water-and-hydrogen-bonding"] = courses/AP Calculus BC courseDocumentId/units/coursesubCollectionId
-
-                /// Add the collection references with their new lower paths
-                /// for courses, units, and topics; but not subtopics
-                /// (they're just not needed)
-                if (i < collectionNames.length) {
-                  _visitedCollections[
-                          appendRoute(level, encodeUri(doc.data()["name"]))] =
-                      doc.reference.collection(collectionNames[i + 1]);
-                }
-              });
-            }
-          }
-
-          /// If local storage DOES NOT have a collection reference for the needed path
-          /// e.g. courses/troll: null
-          else {
-            notFound = true;
-          }
-        }
-
-        /// --- How the for loop works ---
-        ///
-        /// Notice:
-        ///
-        /// Anywhere requested in the hierarchy the courses page is needed
-        /// because it acts as the page at the bottom of the view stack
-        /// and all lower heierarcal data is dependent on collection references
-        /// that are retreived before the lower heierarcal data is retrieved.
-        ///
-        /// ---
-        ///
-        /// This is demonstrated through the usage of the for loop.
-        ///
-        /// The for loop always starts with checking if the:
-        /// 1. "courses" collection reference exists
-        /// 2. "courses" collection documents' data exists
-        ///
-        /// If both are true, the for loop will proceed checking the path
-        /// that includes the next level in the hierarchy.
-        ///
-        /// For example:
-        ///
-        /// IF
-        /// _requested.hierarchy = [courses, AP Calculus BC]
-        /// _hierarchy = [courses, AP Calculus BC]
-        /// i = 1
-        ///
-        /// THEN
-        /// collection = "courses/AP Calculus BC"
-        ///
-        /// SO
-        /// 1. Check if "courses/AP Calculus BC" collection reference exists
-        ///   It DOES exist because the reference was added when the "/courses"
-        ///   document data was added.
-        /// 2. Check if "courses/AP Calculus BC" collection documents' data exists
-        ///   It DOES NOT exist, so the data AND next collection references will
-        ///   be added to local storage.
-        ///
-        /// The cycle can then repeat for the next level of the hierarcy.
-
-        break;
-      case "question":
-        break;
-      case "sproutset":
-        break;
-      case "user":
-        break;
-      default:
-        notFound = true;
-        break;
-    }
-
-    if (notFound) _additionalPage = AdditionalPage.notFound;
+    if (await _cache.storeDocs(_requested.hierarchy))
+      _additionalPage = AdditionalPage.notFound;
 
     if (_additionalPage == AdditionalPage.none)
       _curr.copyRequestedStack(_requested);
@@ -362,23 +221,20 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
 
     List hierarchy = _curr.hierarchy;
 
+    List hierarchyLevels = _cache.getLevels(hierarchy);
+    
     /// Cases for handling the pages of each of the root paths
     switch (hierarchy[0]) {
       case "courses":
 
         /// Add heirarchy pages
-        for (int i = 0; i < hierarchy.length; i++) {
-          String level = getRoute(hierarchy.sublist(0, i + 1));
-          print(level);
-
-          if (_visitedDocuments[level].first.containsKey("questions")) {
-            pages.add(MaterialPage(
-                child: StudySetView(queryData: _visitedDocuments[level])));
+        for (Map level in hierarchyLevels) {
+          if (level["view"] == "questions") {
+            pages.add(
+                MaterialPage(child: StudySetView(questions: level["docs"])));
           } else {
             pages.add(MaterialPage(
-                child: AppHomeView(
-                    appHierarchy: hierarchy.sublist(1, i + 1),
-                    queryData: _visitedDocuments[level])));
+                child: AppHomeView(level: level["view"], docs: level["docs"])));
           }
         }
         break;
@@ -389,7 +245,6 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
       case "user":
         break;
       default:
-        print("oh");
         break;
     }
 

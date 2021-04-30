@@ -4,24 +4,15 @@ import 'package:get/get.dart';
 /// Router
 import 'package:quizzywizzy/services/router.dart';
 
-/// Handy functions
-import 'package:quizzywizzy/functions.dart';
-
 /// Widgets
 import 'package:quizzywizzy/widgets/body_template.dart';
 import 'package:quizzywizzy/widgets/selection_cell.dart';
 
 class AppHomeView extends StatelessWidget {
-  final List<String> appHierarchy;
-  final List<Map<String, dynamic>> queryData;
-  final List<String> viewTitles = [
-    "Select a Course",
-    "Select a Unit",
-    "Select a Topic",
-    "Select a Subtopic"
-  ];
+  final String level;
+  final List docs;
   final AppRouterDelegate delegate = Get.find<AppRouterDelegate>();
-  AppHomeView({@required this.appHierarchy, @required this.queryData});
+  AppHomeView({@required this.level, @required this.docs});
   Widget build(BuildContext context) {
     return BodyTemplate(child: _getHomeContent(context));
   }
@@ -33,30 +24,36 @@ class AppHomeView extends StatelessWidget {
         Center(
             child: Container(
           padding: EdgeInsets.symmetric(vertical: 40),
-          child: Text(viewTitles[appHierarchy.length],
+          child: Text(level.capitalize,
               style: TextStyle(
                 fontSize: 40,
               )),
         )),
         SingleChildScrollView(
           child: Wrap(
-            runSpacing: 10,
-            spacing: 10,
+            runSpacing: 20,
+            spacing: 20,
             alignment: WrapAlignment.center,
-            children: queryData
-                .map((docData) => SelectionCell(
-                    text: docData["name"],
+            children: docs
+                .map((doc) {
+                  return SelectionCell(
                     icon: Icons.ac_unit,
+                    text: doc["name"],
+                    type: doc.containsKey("questions") ? (doc["questions"] ? 0 : 1) : 2,
                     onTap: () {
-                      delegate.push(encodeUri(docData["name"]));
-                      /*Navigator.of(context)
-                                .pushReplacementNamed(
-                                    Constants.getCourseRoute(doc.data()["name"]));*/
-                    }))
-                .toList().cast<Widget>(),
+                      delegate.push(doc["url"]);
+                    });})
+                .toList()
+                .cast<Widget>(),
           ),
         ),
       ],
     );
   }
 }
+
+
+
+
+
+

@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -5,36 +8,22 @@ import 'package:quizzywizzy/models/app_user.dart';
 
 /// A set of methods that manages [FirebaseAuth] and [GoogleSignIn].
 class AuthService {
-  // Firebase
-  static final GoogleSignIn _googleSignIn = GoogleSignIn(
-      scopes: ["email", "profile"]);
+  static final GoogleSignIn _googleSignIn =
+      GoogleSignIn(scopes: ["email", "profile"]);
   static final FirebaseAuth _auth = FirebaseAuth.instance;
+  static get appUser => _user;
+  static AppUser _user = AppUser();
+  static final List<String> domains = ["stu.naperville203.org", "naperville203.org"];
 
-  // Email domains
-  static const List<String> domains = ["stu.naperville203.org", "naperville203.org"];
-
-  /// Returns [GoogleSignIn.onCurrentUserChanged].
-  static get onGoogleUserChanged => _googleSignIn.onCurrentUserChanged;
-
-  static AppUser _appUserFromFireBaseUser(User user) =>
-      AppUser(uid: user.uid, displayName: user.displayName, email: user.email);
-
-  static Stream<AppUser> get appUserStream =>
-      _auth.authStateChanges().map(_appUserFromFireBaseUser);
-
-  static Future<AppUser> signInWithGoogle() async {
+  static Future<void> signInWithGoogle() async {
     if (_auth.currentUser != null || _googleSignIn.currentUser != null)
       await signOutWithGoogle();
-    //googleSignIn.hostedDomain = Constants.domains[Random().nextInt(2)];
-    final GoogleSignInAccount googleSignInAccount = await _googleSignIn.signIn();
+    final GoogleSignInAccount googleSignInAccount =
+        await _googleSignIn.signIn();
     final GoogleSignInAuthentication googleSignInAuthentication =
         await googleSignInAccount.authentication;
-
-    List<String> gmailSegments = _googleSignIn.currentUser.email.split("@");
-    if (!domains.contains(gmailSegments[1])) {
-      await signOutWithGoogle();
-      throw PlatformException(code: "invalid-domain");
-    }
+    if (_googleSignIn.currentUser != null)
+      await validateEmail(_googleSignIn.currentUser.email);
 
     final AuthCredential credential = GoogleAuthProvider.credential(
       accessToken: googleSignInAuthentication.accessToken,
@@ -42,58 +31,55 @@ class AuthService {
     );
     final UserCredential authResult =
         await _auth.signInWithCredential(credential);
-    final User user = authResult.user;
-    if (user != null) {
-      assert(user.email != null);
-      assert(user.displayName != null);
-      assert(!user.isAnonymous);
-      assert(await user.getIdToken() != null);
-
-      final User currentUser = _auth.currentUser;
-      assert(user.uid == currentUser.uid);
-
-      print('signInWithGoogle succeeded: ' + user.displayName);
+    IdTokenResult token = await authResult.user.getIdTokenResult();
+    if (token.claims.containsKey("role"))
+      _user.createInstance(authAccount: authResult.user, googleAccount: googleSignInAccount, role: token.claims["role"]);
+    else {
+      _user.createInstance(authAccount: authResult.user, googleAccount: googleSignInAccount, role: "student");
+      print("Failed to get role of user, defaulting to student");
     }
-    return _appUserFromFireBaseUser(user);
+  }
+
+  static Future<void> validateEmail(String email) async {
+    List<String> emailSegments = email.split("@");
+    if (!(emailSegments.length == 2 &&
+        domains.contains(emailSegments[1]))) {
+      final results = await FirebaseFunctions.instance
+          .httpsCallable("validateEmail")
+          .call({"email": email});
+      if (!results.data["valid"]) {
+        await signOutWithGoogle();
+        throw PlatformException(code: "invalid-email");
+      }
+    }
   }
 
   static Future<void> signInSilently() async {
-    await _googleSignIn.signInSilently();
-    if (_googleSignIn.currentUser != null) {
-      List<String> gmailSegments = _googleSignIn.currentUser.email.split("@");
-      if (!domains.contains(gmailSegments[1])) {
-        await signOutWithGoogle();
-        throw PlatformException(code: "invalid-domain");
-      }
+    if (_auth.currentUser != null) {
+      await _googleSignIn.signInSilently();
+      if (_googleSignIn.currentUser != null) {
+        await validateEmail(_googleSignIn.currentUser.email);
+        IdTokenResult token = await _auth.currentUser.getIdTokenResult();
+        if (token.claims.containsKey("role"))
+          _user.createInstance(authAccount: _auth.currentUser, googleAccount: _googleSignIn.currentUser, role: token.claims["role"]);
+        else {
+          _user.createInstance(authAccount: _auth.currentUser, googleAccount: _googleSignIn.currentUser, role: "student");
+          print("Failed to get role of user, defaulting to student");
+        }
+      } 
     }
   }
 
   static Future<void> signOutWithGoogle() async {
     if (_auth.currentUser != null) await _auth.signOut();
     if (_googleSignIn.currentUser != null) await _googleSignIn.signOut();
-    print("User Signed Out");
+    if (_user.exists) _user.deleteInstance();
   }
 
-  static String getMessageFromGoogleSignInErrorCode(e) {
+  static String getMessageFromSignInErrorCode(e) {
     switch (e.code) {
       case "popup_closed_by_user":
         return "Google Sign In OAuth consent screen closed by the user";
-      case "invalid-domain":
-        return "Google Account does not have a valid domain: ${domains.toString()}";
-      default:
-        return "Login failed. Please try again.";
-    }
-  }
-
-  static String getMessageFromSignOutErrorCode(e) {
-    switch (e) {
-      default:
-        return "Error occurred while signing out.";
-    }
-  }
-
-  static String getMessageFromFireAuthErrorCode(e) {
-    switch (e) {
       case "ERROR_USER_NOT_FOUND":
       case "user-not-found":
       case "ERROR_WRONG_PASSWORD":
@@ -110,10 +96,17 @@ class AuthService {
         break;
       case "ERROR_INVALID_EMAIL":
       case "invalid-email":
-        return "Email address is invalid.";
+        return "Google account is not a valid Naperville 203 account";
         break;
       default:
         return "Login failed. Please try again.";
+    }
+  }
+
+  static String getMessageFromSignOutErrorCode(e) {
+    switch (e) {
+      default:
+        return "Error occurred while signing out.";
     }
   }
 }

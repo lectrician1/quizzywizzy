@@ -22,14 +22,11 @@ class BodyTemplate extends StatelessWidget {
         child: Scrollbar(
           child: Align(
             alignment: Alignment.topCenter,
-            child: Stack(
-              children: [
+            child: 
                 Container(
                   constraints: BoxConstraints(maxWidth: constraintWidth),
                   child: child,
                 ),
-              ],
-            ),
           ),
         ),
       ),
