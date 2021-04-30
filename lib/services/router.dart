@@ -127,6 +127,10 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
     /// Add [_updateStack] as listener function
     /// [_updateStack] is called every time [_requested] is changed
     _requested.addListener(_updateStack);
+
+    // Add root collection reference to
+    _visitedCollections["courses"] =
+        FirebaseFirestore.instance.collection(collectionNames[0]);
   }
 
   /// Build the [Navigator]-based router
@@ -199,7 +203,7 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
 
     /// Always set that there is no additional page when updateStack is called.
     _additionalPage = AdditionalPage.none;
-    
+
     if (await _cache.storeDocs(_requested.hierarchy))
       _additionalPage = AdditionalPage.notFound;
 
@@ -218,7 +222,7 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
     List hierarchy = _curr.hierarchy;
 
     List hierarchyLevels = _cache.getLevels(hierarchy);
-
+    
     /// Cases for handling the pages of each of the root paths
     switch (hierarchy[0]) {
       case "courses":
