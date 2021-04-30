@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -9,16 +10,12 @@ import 'package:quizzywizzy/widgets/body_template.dart';
 import 'package:quizzywizzy/widgets/selection_cell.dart';
 
 class AppHomeView extends StatelessWidget {
-  final String level;
-  final List docs;
   final AppRouterDelegate delegate = Get.find<AppRouterDelegate>();
-  AppHomeView({@required this.level, @required this.docs});
+  
   Widget build(BuildContext context) {
-    return BodyTemplate(child: _getHomeContent(context));
-  }
+    CollectionReference 
 
-  Widget _getHomeContent(BuildContext context) {
-    return ListView(
+    return BodyTemplate(child: ListView(
       shrinkWrap: true,
       children: [
         Center(
@@ -48,7 +45,7 @@ class AppHomeView extends StatelessWidget {
           ),
         ),
       ],
-    );
+    ));
   }
 }
 

@@ -1,141 +1,80 @@
-/*
-  Map<String, dynamic> cache = {
-    "courses" : {
-      "reference" : CollectionReference,
-      "view" : "Courses",
-      "documents" : {
-        "ap-calculus" : {
-          "fields" : {
-            "name" : "AP Calculus"
-          },
-          "collection" : {
-            "reference" : CollectionReference
-            "view" : "Units"
-            "documents" : [ 
-              {
-                "fields" : {
-                  name = "Series"
-                }
-              }
-            ]
-          }
-        }
-      }
-    }
-    "questions" : ...
-  };
-*/
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:quizzywizzy/services/routing_constants.dart';
 
-class Cache {
-  Map<String, dynamic> _cache;
+Future<DocumentReference> getFirestoreDocPath(List hierarchy) async {
+  switch (hierarchy[0]) {
+    case "courses":
 
-  Cache() {
-    _cache = {
-      "courses": {
-        "reference": FirebaseFirestore.instance.collection("courses"),
-        "view": "courses",
-        "documents": {}
-      }
-    };
-  }
+      /// Get the starting collection
+      CollectionReference collection =
+          FirebaseFirestore.instance.collection("courses");
 
-  Future<bool> storeDocs(List hierarchy) async {
-    Map collection = _cache[hierarchy[0]];
+      /// Level iterator
+      int nextLevel = 1;
 
-    int nextLevel = 1;
+      /// Check each given level of the hierarchy to see if it has a valid page (Firestore document)
+      while (nextLevel <= hierarchy.length) {
+        /// Get the documents in the collection
+        QuerySnapshot query = await collection.get();
 
-    while (nextLevel <= hierarchy.length) {
-      if (collection["documents"].isEmpty) {
-        QuerySnapshot query = await collection["reference"].get();
+        /// If document has been found for this level
+        bool foundDoc = false;
 
-        if (collection["view"] == "questions") {
-          /// Declare documents as [List] (required)
-          collection["documents"] = [];
+        /// Document iterator
+        int i = 0;
 
-          query.docs.forEach((docSnap) {
-            collection["documents"].addAll(docSnap.data()["questions"]);
-          });
-          break;
-        } else {
-          /// Declare documents as [Map] (required)
-          collection["documents"] = {};
+        /// Check each document in the level if it has the url of the next level.
+        /// That means the level is a valid page.
+        while (i < query.docs.length) {
+          /// If the doc has been found
+          if (hierarchy[nextLevel] == query.docs[i].data()["url"]) {
+            foundDoc = true;
 
-          query.docs.forEach((docSnap) {
-            Map fields = docSnap.data();
+            /// If it is not the last level, set collection for next level.
+            ///
+            /// We do not want to get the collection for the last level because
+            /// [nextLevel] needs to always be less than [collectionNames.length].
+            if (nextLevel + 1 < hierarchy.length) {
+              collection = collection
+                  .doc(query.docs[i].id)
+                  .collection(collectionNames[nextLevel]);
+            } else
+              return collection.doc(query.docs[i].id);
 
-            String view = "level";
-            CollectionReference collectionReference;
+            /// Stop checking documents
+            break;
+          }
 
-            if (fields["questions"] != null && fields["questions"]) {
-              view = "questions";
-              collectionReference = docSnap.reference.collection("questions");
-            } else {
-              view = collectionNames[nextLevel];
-              collectionReference =
-                  docSnap.reference.collection(collectionNames[nextLevel]);
-            }
-
-            collection["documents"][fields["url"]] = {
-              "fields": fields,
-              "collection": {
-                "reference": collectionReference,
-                "view": view,
-                "documents": {}
-              }
-            };
-          });
+          /// Advance to the next document
+          i++;
         }
-      }
-      if (nextLevel != hierarchy.length) {
-        if (collection["documents"][hierarchy[nextLevel]] == null)
-          return true;
+
+        if (foundDoc)
+
+          /// Advance to the next level
+          nextLevel++;
         else
-          collection =
-              collection["documents"][hierarchy[nextLevel]]["collection"];
-      } else
-        break;
-      nextLevel++;
-    }
 
-    return false;
-  }
-
-  List<Map> getLevels(List hierarchy) {
-    print(_cache);
-
-    /// Docs in hierarchy order
-    List<Map> levels = [];
-
-    void addLevel(List levels, Map collection) {
-      levels.add({
-        "view": collection["view"],
-        "docs": collection["documents"]
-            .entries
-            .map((doc) => doc.value["fields"])
-            .toList()
-      });
-    }
-
-    Map collection = _cache[hierarchy[0]];
-
-    addLevel(levels, collection);
-
-    for (int i = 1; i < hierarchy.length; i++) {
-      collection = collection["documents"][hierarchy[i]]["collection"];
-      String view = collection["view"];
-
-      if (view == "questions") {
-        levels
-            .add({"view": view, "docs": collection["documents"]});
+          /// If a document was never found in the collection, return false.
+          return null;
       }
-      else
-        addLevel(levels, collection);
-    }
 
-    print("levels: $levels");
+      /// Return true if docs have been found for all levels
+      return true;
+    case "questions":
 
-    return levels;
+      /// Check if document id is provided
+      if (hierarchy[1] != null) {
+        /// Get document snapshot to see if the doc exists
+        DocumentSnapshot snapshot = await FirebaseFirestore.instance
+            .doc("questions/" + hierarchy[1])
+            .get();
+
+        /// Return true if question document exists
+        if (snapshot.exists) return true;
+      }
   }
+
+  /// No true for a page existing before, so return false.
+  return false;
 }

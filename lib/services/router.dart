@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 /// Needed to create views
 import 'package:flutter/material.dart';
 
@@ -25,6 +27,7 @@ import 'package:quizzywizzy/views/route_not_found.dart';
 class AppStack extends ChangeNotifier {
   List<String> _hierarchy;
   List<String> _lastHierarchy;
+  String firestorePath;
   List<String> get hierarchy => _hierarchy;
 
   PseudoPage _pseudoPage = PseudoPage.none;
@@ -102,12 +105,10 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
   /// Represents any additional page.
   ///
   /// See [AdditionalPage] enum for more details.
-  AdditionalPage _additionalPage;
+  bool _notFound;
 
   /// Represents whether or not [_updateStack] has already been called.
   bool _loading;
-
-  Cache _cache;
 
   AppStack get currentConfiguration => _requested;
 
@@ -119,10 +120,7 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
         /// Courses needs to be in the current heirarchy or else getPages will never know what the "first page" is.
         /// This is temporary until an actual homepage is created and getPages can account for no first hierarchy
         _curr = AppStack(hierarchy: ["courses"]),
-        _additionalPage = AdditionalPage.none,
-
-        /// Initialize local storage
-        _cache = new Cache(),
+        _notFound = false,
         _loading = false {
     /// Add [_updateStack] as listener function
     /// [_updateStack] is called every time [_requested] is changed
@@ -140,15 +138,14 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
   }
 
   bool canPop() {
-    return _additionalPage != AdditionalPage.none ||
-        _requested.hierarchy.length > 1;
+    return _notFound == true || _requested.hierarchy.length > 1;
   }
 
   /// pops [_requested] stack. All calls will be ignored if [_loading] == true.
   void pop() {
     if (_loading) return;
-    if (_additionalPage != AdditionalPage.none) {
-      _additionalPage = AdditionalPage.none;
+    if (_notFound == true) {
+      _notFound = false;
       _requested.copyCurrStack(_curr);
       notifyListeners();
     } else
@@ -197,14 +194,12 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
     _loading = true;
     notifyListeners();
 
-    /// Always set that there is no additional page when updateStack is called.
-    _additionalPage = AdditionalPage.none;
-
-    if (await _cache.storeDocs(_requested.hierarchy))
-      _additionalPage = AdditionalPage.notFound;
-
-    if (_additionalPage == AdditionalPage.none)
+    if (await pageExists(_requested.hierarchy)) {
+      _notFound = false;
       _curr.copyRequestedStack(_requested);
+    } else
+      _notFound = true;
+
     _loading = false;
 
     notifyListeners();
@@ -217,8 +212,6 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
 
     List hierarchy = _curr.hierarchy;
 
-    List hierarchyLevels = _cache.getLevels(hierarchy);
-    
     /// Cases for handling the pages of each of the root paths
     switch (hierarchy[0]) {
       case "courses":
@@ -262,15 +255,10 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
       return pages;
     }
 
-    switch (_additionalPage) {
-      case AdditionalPage.none:
-        break;
-      case AdditionalPage.notFound:
-        pages += [
-          MaterialPage(child: RouteNotFoundView(name: Uri.base.toString()))
-        ];
-        break;
-    }
+    if (_notFound == true)
+      pages += [
+        MaterialPage(child: RouteNotFoundView(name: Uri.base.toString()))
+      ];
     return pages;
   }
 
