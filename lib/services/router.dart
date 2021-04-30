@@ -127,10 +127,6 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
     /// Add [_updateStack] as listener function
     /// [_updateStack] is called every time [_requested] is changed
     _requested.addListener(_updateStack);
-
-    // Add root collection reference to
-    _visitedCollections["courses"] =
-        FirebaseFirestore.instance.collection(collectionNames[0]);
   }
 
   /// Build the [Navigator]-based router
