@@ -27,7 +27,7 @@ import 'package:quizzywizzy/views/route_not_found.dart';
 class AppStack extends ChangeNotifier {
   List<String> _hierarchy;
   List<String> _lastHierarchy;
-  String firestorePath;
+  DocumentReference firestoreDoc;
   List<String> get hierarchy => _hierarchy;
 
   PseudoPage _pseudoPage = PseudoPage.none;
@@ -194,9 +194,13 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
     _loading = true;
     notifyListeners();
 
-    if (await pageExists(_requested.hierarchy)) {
+    DocumentReference firestoreDoc =
+        await getFirestoreDoc(_requested.hierarchy);
+
+    if (firestoreDoc != null) {
       _notFound = false;
       _curr.copyRequestedStack(_requested);
+      _curr.firestoreDoc = firestoreDoc;
     } else
       _notFound = true;
 
@@ -215,17 +219,14 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
     /// Cases for handling the pages of each of the root paths
     switch (hierarchy[0]) {
       case "courses":
-
-        /// Add heirarchy pages
-        for (Map level in hierarchyLevels) {
-          if (level["view"] == "questions") {
-            pages.add(
-                MaterialPage(child: StudySetView(questions: level["docs"])));
-          } else {
-            pages.add(MaterialPage(
-                child: AppHomeView(level: level["view"], docs: level["docs"])));
-          }
+        for (int i = 0; i < hierarchy.length; i++) {
+          if(_curr.firestoreDoc.path)
+          pages.add(MaterialPage(child: AppHomeView(doc: )));
         }
+          pages.add(MaterialPage(child: StudySetView()));
+
+        
+
         break;
       case "question":
         break;

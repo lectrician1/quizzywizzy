@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:quizzywizzy/services/routing_constants.dart';
 
-Future<DocumentReference> getFirestoreDocPath(List hierarchy) async {
+Future<DocumentReference> getFirestoreDoc(List hierarchy) async {
   switch (hierarchy[0]) {
     case "courses":
 

@@ -11,11 +11,12 @@ import 'package:quizzywizzy/widgets/selection_cell.dart';
 
 class AppHomeView extends StatelessWidget {
   final AppRouterDelegate delegate = Get.find<AppRouterDelegate>();
+  final DocumentReference doc;
+
+  AppHomeView({@required this.doc});
   
   Widget build(BuildContext context) {
-    CollectionReference 
-
-    return BodyTemplate(child: ListView(
+    return FutureBuilder<DocumentSnapshot>(builder: builder) BodyTemplate(child: ListView(
       shrinkWrap: true,
       children: [
         Center(
