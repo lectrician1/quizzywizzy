@@ -34,12 +34,12 @@ class AppHomeView extends StatelessWidget {
             runSpacing: 20,
             spacing: 20,
             alignment: WrapAlignment.center,
-            children: queryData
+            children: docs
                 .map((doc) {
                   return SelectionCell(
                     icon: Icons.ac_unit,
                     text: doc["name"],
-                    type: doc.containsKey("questions") ? (doc["questions"] ? 1 : 0) : 2,
+                    type: doc.containsKey("questions") ? (doc["questions"] ? 0 : 1) : 2,
                     onTap: () {
                       delegate.push(doc["url"]);
                     });})

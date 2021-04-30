@@ -1,5 +1,3 @@
-import 'dart:collection';
-
 /// Needed to create views
 import 'package:flutter/material.dart';
 

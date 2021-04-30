@@ -1,7 +1,5 @@
 import 'dart:async';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:provider/provider.dart';
@@ -9,7 +7,6 @@ import 'package:quizzywizzy/constants.dart';
 import 'package:quizzywizzy/models/app_user.dart';
 import 'package:quizzywizzy/models/ui_type.dart';
 import 'package:quizzywizzy/services/auth_service.dart';
-import 'package:flutter/foundation.dart';
 //import 'package:quizzywizzy/services/configure_nonweb.dart' if (dart.library.html) 'package:quizzywizzy/services/configure_web.dart';
 import 'package:quizzywizzy/services/router.dart';
 import 'package:firebase_core/firebase_core.dart';

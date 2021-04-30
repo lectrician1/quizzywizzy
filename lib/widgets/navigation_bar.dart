@@ -4,12 +4,10 @@ import 'package:flutter/rendering.dart';
 import 'package:get/get.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
-import 'package:quizzywizzy/constants.dart';
 import 'package:quizzywizzy/models/app_user.dart';
 import 'package:quizzywizzy/models/ui_type.dart';
 import 'package:quizzywizzy/services/auth_service.dart';
 import 'package:quizzywizzy/services/router.dart';
-import 'package:quizzywizzy/services/routing_constants.dart';
 import 'package:quizzywizzy/widgets/custom_snack_bars.dart';
 import 'package:quizzywizzy/widgets/sign_in_dialog.dart';
 
@@ -130,7 +128,7 @@ class NavigationBar extends StatelessWidget {
                 _elevatedDropDownMenu(user, context),
                 Padding(padding: EdgeInsets.all(10)),
               ],
-              _getProfile(user, context),
+              _getProfile(context),
             ]),
           ),
           FractionallySizedBox(

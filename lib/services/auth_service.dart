@@ -4,7 +4,6 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:quizzywizzy/constants.dart';
 import 'package:quizzywizzy/models/app_user.dart';
 
 /// A set of methods that manages [FirebaseAuth] and [GoogleSignIn].
@@ -14,6 +13,7 @@ class AuthService {
   static final FirebaseAuth _auth = FirebaseAuth.instance;
   static get appUser => _user;
   static AppUser _user = AppUser();
+  static final List<String> domains = ["stu.naperville203.org", "naperville203.org"];
 
   static Future<void> signInWithGoogle() async {
     if (_auth.currentUser != null || _googleSignIn.currentUser != null)
@@ -43,7 +43,7 @@ class AuthService {
   static Future<void> validateEmail(String email) async {
     List<String> emailSegments = email.split("@");
     if (!(emailSegments.length == 2 &&
-        Constants.domains.contains(emailSegments[1]))) {
+        domains.contains(emailSegments[1]))) {
       final results = await FirebaseFunctions.instance
           .httpsCallable("validateEmail")
           .call({"email": email});
