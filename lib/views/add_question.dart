@@ -79,8 +79,8 @@ class DynamicallyCheckboxState extends State {
         child :
         ListView(
           children: List.keys.map((String key) {
-            return new CheckboxListTile(
-              title: new Text(key),
+            return CheckboxListTile(
+              title: Text(key),
               value: List[key],
               activeColor: Colors.green[400],
               checkColor: Colors.white,
@@ -94,13 +94,16 @@ class DynamicallyCheckboxState extends State {
         ),
       ),
     
-        RaisedButton(
-        child: Text(" Enter"),
-        onPressed: getItems,
-        color: Colors.green,
-        textColor: Colors.white,
-        splashColor: Colors.grey,
-        padding: EdgeInsets.fromLTRB(10, 10, 10, 10),
+        ElevatedButton(
+          child: Text(" Enter"),
+          onPressed: getItems,
+          style: ElevatedButton.styleFrom(
+           primary: Colors.green,
+           padding: EdgeInsets.fromLTRB(10, 10, 10, 10),
+           textStyle: TextStyle(
+             color:Colors.black
+           ),
+          )
       ),
     
     ]);
