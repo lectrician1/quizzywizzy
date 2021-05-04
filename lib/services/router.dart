@@ -12,6 +12,7 @@ import 'package:quizzywizzy/services/routing_constants.dart';
 /// Views
 import 'package:quizzywizzy/views/add_question.dart';
 import 'package:quizzywizzy/views/app_home.dart';
+import 'package:quizzywizzy/views/home.dart';
 import 'package:quizzywizzy/views/loading.dart';
 import 'package:quizzywizzy/views/single_question.dart';
 import 'package:quizzywizzy/views/study_set.dart';
@@ -27,7 +28,7 @@ import 'package:quizzywizzy/views/route_not_found.dart';
 class AppStack extends ChangeNotifier {
   List<String> _hierarchy;
   List<String> _lastHierarchy;
-  dynamic firestoreRef;
+  dynamic views;
   List<String> get hierarchy => _hierarchy;
 
   PseudoPage _pseudoPage = PseudoPage.none;
@@ -119,7 +120,7 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
 
         /// Courses needs to be in the current heirarchy or else getPages will never know what the "first page" is.
         /// This is temporary until an actual homepage is created and getPages can account for no first hierarchy
-        _curr = AppStack(hierarchy: ["courses"]),
+        _curr = AppStack(hierarchy: []),
         _notFound = false,
         _loading = false {
     /// Add [_updateStack] as listener function
@@ -195,14 +196,13 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
     _loading = true;
     notifyListeners();
 
-    List firestoreRef =
-        await getFirestoreRef(_requested.hierarchy);
+    List views = await getViews(_requested.hierarchy);
 
-    /// Check if null
-    if (firestoreRef != null) {
+    /// Check if not found
+    if (views != null) {
       _notFound = false;
       _curr.copyRequestedStack(_requested);
-      _curr.firestoreRef = firestoreRef;
+      _curr.views = views;
     } else
       _notFound = true;
 
@@ -217,28 +217,32 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
     // Page stack in order
     List<Page<dynamic>> pages = [];
 
+    void addPage(Widget widget) {
+      pages.add(MaterialPage(child: widget));
+    }
+
     List hierarchy = _curr.hierarchy;
 
     /// Cases for handling the pages of each of the root paths
-    switch (hierarchy[0]) {
-      case "courses":
-        for (int i = 0; i < hierarchy.length; i++) {
-          if(_curr.firestoreRef[i]["view"] == View.Questions)
-          pages.add(MaterialPage(child: AppHomeView(collection: _curr.firestoreRef[i])));
-        }
-          pages.add(MaterialPage(child: StudySetView()));
-
-        
-
-        break;
-      case "question":
-        break;
-      case "sproutset":
-        break;
-      case "user":
-        break;
-      default:
-        break;
+    for (int i = 0; i <= hierarchy.length; i++) {
+      switch (_curr.views[i]["view"]) {
+        case View.home:
+          addPage(HomeView());
+          break;
+        case View.courses:
+        case View.units:
+        case View.topics:
+        case View.subtopics:
+          addPage(AppHomeView(collection: _curr.views[i]["reference"]));
+          break;
+        case View.questions:
+          addPage(StudySetView(collection: _curr.views[i]["reference"]));
+          break;
+        case View.question:
+          break;
+        default:
+          break;
+      }
     }
 
     // Handle creation of pseudo-pages (views without url segments).
