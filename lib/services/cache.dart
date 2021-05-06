@@ -6,11 +6,11 @@ enum View { courses, units, topics, subtopics, home, questions, question }
 List<View> views = View.values;
 
 Future<dynamic> getViews(List hierarchy) async {
-  List<Map<String, dynamic>> viewReferences = [{
-    "view": View.home
-  }];
+  List<Map<String, dynamic>> viewReferences = [
+    {"view": View.home}
+  ];
 
-  if (hierarchy.isNotEmpty) {
+  if (hierarchy != null && hierarchy.isNotEmpty) {
     switch (hierarchy[0]) {
       case "courses":
         viewReferences.add({
@@ -24,7 +24,8 @@ Future<dynamic> getViews(List hierarchy) async {
         /// Check each given level of the hierarchy to see if it has a valid page (Firestore document)
         while (level < hierarchy.length) {
           /// Get the documents in the collection
-          QuerySnapshot query = await viewReferences[level + 1]["reference"].get();
+          QuerySnapshot query =
+              await viewReferences[level + 1]["reference"].get();
 
           /// If document has been found for this level
           bool foundDoc = false;
@@ -94,7 +95,7 @@ Future<dynamic> getViews(List hierarchy) async {
             });
         }
         break;
-      
+
       /// Hierarcy[0] not found
       default:
         return null;

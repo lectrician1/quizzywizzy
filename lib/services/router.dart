@@ -1,5 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 /// Needed to create views
 import 'package:flutter/material.dart';
 
