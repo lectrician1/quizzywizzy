@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -7,6 +8,8 @@ import 'package:quizzywizzy/services/router.dart';
 /// Widgets
 import 'package:quizzywizzy/widgets/body_template.dart';
 import 'package:quizzywizzy/widgets/selection_cell.dart';
+import 'package:transparent_image/transparent_image.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class AppHomeView extends StatelessWidget {
   final String level;
@@ -37,7 +40,7 @@ class AppHomeView extends StatelessWidget {
             children: docs
                 .map((doc) {
                   return SelectionCell(
-                    icon: Icons.ac_unit,
+                    image: doc.containsKey("img") ? CachedNetworkImage(imageUrl: doc["img"]) : Image.memory(kTransparentImage),
                     text: doc["name"],
                     type: doc.containsKey("questions") ? (doc["questions"] ? 0 : 1) : 2,
                     onTap: () {
