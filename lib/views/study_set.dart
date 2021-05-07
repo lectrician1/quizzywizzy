@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:quizzywizzy/services/router.dart';
 import 'package:quizzywizzy/services/routing_constants.dart';
+import 'package:quizzywizzy/views/loading.dart';
 import 'package:quizzywizzy/widgets/body_template.dart';
 
 enum Sort { ratingHigh, ratingLow }
@@ -26,93 +27,106 @@ class _StudySetViewState extends State<StudySetView> {
 
   Widget build(BuildContext context) {
     collection = widget.collection;
-    return StreamBuilder<QuerySnapshot>(
-        stream: collection.snapshots(),
-        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-          /// Compile all questions from docs into one [List]
-          snapshot.data.docs.forEach((DocumentSnapshot document) {
-            document.data()["questions"].forEach((Map question) {
-              questions.add(question);
-            });
-          });
+    questions = [];
 
-          /// Return list
-          return BodyTemplate(
-              child: Stack(fit: StackFit.expand, children: [
-            ListView.custom(
-              childrenDelegate: SliverChildBuilderDelegate(
-                  (BuildContext context, int index) {
-                    return Card(
-                        margin: const EdgeInsets.all(10.0),
-                        clipBehavior: Clip.antiAlias,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15.0),
+    /// Return list
+    return BodyTemplate(
+        child: StreamBuilder<QuerySnapshot>(
+            stream: collection.snapshots(),
+            builder:
+                (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+              if (snapshot.hasError) {
+                return Text('Something went wrong');
+              }
+
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return LoadingView();
+              }
+
+              /// Compile all questions from docs into one [List]
+              snapshot.data.docs.forEach((DocumentSnapshot document) {
+                document.data()["questions"].forEach((question) {
+                  questions.add(question);
+                });
+              });
+
+              /// Return list
+              return new Stack(fit: StackFit.expand, children: [
+                ListView.custom(
+                  childrenDelegate: SliverChildBuilderDelegate(
+                      (BuildContext context, int index) {
+                        return new Card(
+                            margin: const EdgeInsets.all(10.0),
+                            clipBehavior: Clip.antiAlias,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(15.0),
+                            ),
+                            key: ValueKey<int>(index),
+                            child: Material(
+                                color: Colors.blue,
+                                child: InkWell(
+                                    splashColor: Colors.red,
+                                    hoverColor: Colors.blue[600],
+                                    // onTap: ,
+                                    child: Container(
+                                        padding: const EdgeInsets.all(20.0),
+                                        child: Text(
+                                          questions[index]["name"],
+                                          textAlign: TextAlign.center,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        )))));
+                      },
+                      childCount: questions.length,
+                      findChildIndexCallback: (Key key) {
+                        final ValueKey valueKey = key as ValueKey;
+                        final int data = valueKey.value;
+                        return data;
+                      }),
+                ),
+                Positioned(
+                  bottom: 20,
+                  right: 20,
+                  child: FloatingActionButton(
+                    onPressed: () =>
+                        widget.delegate.pushPseudo(PseudoPage.addQuestion),
+                    tooltip: 'Add Question',
+                    child: Icon(Icons.add),
+                  ),
+                ),
+                Positioned(
+                    bottom: 20,
+                    left: 20,
+                    child: PopupMenuButton<Sort>(
+                      icon: Icon(Icons.sort),
+                      onSelected: (Sort selected) {
+                        setState(() {
+                          switch (selected) {
+                            case Sort.ratingHigh:
+                              questions.sort(
+                                  (a, b) => b["rating"].compareTo(a["rating"]));
+                              break;
+                            case Sort.ratingLow:
+                              questions.sort(
+                                  (a, b) => a["rating"].compareTo(b["rating"]));
+                              break;
+                          }
+                        });
+                      },
+                      itemBuilder: (BuildContext context) =>
+                          <PopupMenuEntry<Sort>>[
+                        const PopupMenuItem<Sort>(
+                          value: Sort.ratingHigh,
+                          child: Text('Rating High to Low'),
                         ),
-                        key: ValueKey<int>(index),
-                        child: Material(
-                            color: Colors.blue,
-                            child: InkWell(
-                                splashColor: Colors.red,
-                                hoverColor: Colors.blue[600],
-                                // onTap: ,
-                                child: Container(
-                                    padding: const EdgeInsets.all(20.0),
-                                    child: Text(
-                                      questions[index]["name"],
-                                      textAlign: TextAlign.center,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    )))));
-                  },
-                  childCount: questions.length,
-                  findChildIndexCallback: (Key key) {
-                    final ValueKey valueKey = key as ValueKey;
-                    final int data = valueKey.value;
-                    return data;
-                  }),
-            ),
-            Positioned(
-              bottom: 20,
-              right: 20,
-              child: FloatingActionButton(
-                onPressed: () =>
-                    widget.delegate.pushPseudo(PseudoPage.addQuestion),
-                tooltip: 'Add Question',
-                child: Icon(Icons.add),
-              ),
-            ),
-            Positioned(
-                bottom: 20,
-                left: 20,
-                child: PopupMenuButton<Sort>(
-                  icon: Icon(Icons.sort),
-                  onSelected: (Sort selected) {
-                    setState(() {
-                      switch (selected) {
-                        case Sort.ratingHigh:
-                          questions.sort(
-                              (a, b) => b["rating"].compareTo(a["rating"]));
-                          break;
-                        case Sort.ratingLow:
-                          questions.sort(
-                              (a, b) => a["rating"].compareTo(b["rating"]));
-                          break;
-                      }
-                    });
-                  },
-                  itemBuilder: (BuildContext context) => <PopupMenuEntry<Sort>>[
-                    const PopupMenuItem<Sort>(
-                      value: Sort.ratingHigh,
-                      child: Text('Rating High to Low'),
-                    ),
-                    const PopupMenuItem<Sort>(
-                      value: Sort.ratingLow,
-                      child: Text('Rating Low to High'),
-                    )
-                  ],
-                ))
-          ]));
-        });
+                        const PopupMenuItem<Sort>(
+                          value: Sort.ratingLow,
+                          child: Text('Rating Low to High'),
+                        )
+                      ],
+                    ))
+              ]);
+            }));
   }
 }
 

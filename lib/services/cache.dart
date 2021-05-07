@@ -19,13 +19,13 @@ Future<dynamic> getViews(List hierarchy) async {
         });
 
         /// Level iterator
-        int level = 0;
+        int level = 1;
 
         /// Check each given level of the hierarchy to see if it has a valid page (Firestore document)
         while (level < hierarchy.length) {
           /// Get the documents in the collection
           QuerySnapshot query =
-              await viewReferences[level + 1]["reference"].get();
+              await viewReferences[level]["reference"].get();
 
           /// If document has been found for this level
           bool foundDoc = false;
@@ -42,24 +42,27 @@ Future<dynamic> getViews(List hierarchy) async {
             if (hierarchy[level] == doc["url"]) {
               foundDoc = true;
 
+              /// Add next level [View] and [CollectionReference] to [viewReferences]
+              /// 
+              /// Add questions or next level view if "questions" field is present.
               if (doc["questions"] != null) {
-                viewReferences[level + 2] = {
+                viewReferences.add({
                   "view": View.questions,
                   "reference": viewReferences[level]["reference"]
                       .doc(query.docs[i].id)
-                      .collection(collectionNames[level])
-                };
+                      .collection("questions")
+                });
               }
-              {
-                viewReferences[level + 2] = {
-                  "view": views[level + 1],
+              else {
+                viewReferences.add({
+                  "view": views[level],
                   "reference": viewReferences[level]["reference"]
                       .doc(query.docs[i].id)
                       .collection(collectionNames[level])
-                };
+                });
               }
 
-              /// Stop checking documents
+              /// Stop checking documents on this level
               break;
             }
 
@@ -73,7 +76,7 @@ Future<dynamic> getViews(List hierarchy) async {
             level++;
           else
 
-            /// If a document was never found in the collection, return false.
+            /// Return null because doc was never found for the level
             return null;
         }
         break;
@@ -81,6 +84,7 @@ Future<dynamic> getViews(List hierarchy) async {
 
         /// Check if document id is provided
         if (hierarchy[1] != null) {
+
           /// Get document snapshot to see if the doc exists
           DocumentSnapshot snapshot = await FirebaseFirestore.instance
               .doc("questions/${hierarchy[1]}")
@@ -96,7 +100,7 @@ Future<dynamic> getViews(List hierarchy) async {
         }
         break;
 
-      /// Hierarcy[0] not found
+      /// hierarcy[0] not found
       default:
         return null;
     }

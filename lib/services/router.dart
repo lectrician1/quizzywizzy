@@ -26,13 +26,17 @@ import 'package:quizzywizzy/views/route_not_found.dart';
 class AppStack extends ChangeNotifier {
   List<String> _hierarchy;
   List<String> _lastHierarchy;
-  dynamic views;
+  List views;
   List<String> get hierarchy => _hierarchy;
 
   PseudoPage _pseudoPage = PseudoPage.none;
   PseudoPage get pseudoPage => _pseudoPage;
 
-  AppStack({@required List<String> hierarchy}) : _hierarchy = hierarchy;
+  AppStack({@required List<String> hierarchy})
+      : _hierarchy = hierarchy,
+        views = [
+    {"view": View.home}
+  ];
 
   /// Set a new hierarchy
   ///
@@ -257,14 +261,12 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
 
     // Show loading view if page is loading.
     if (_loading) {
-      pages += [MaterialPage(child: LoadingView())];
+      addPage(LoadingView());
       return pages;
     }
 
     if (_notFound == true)
-      pages += [
-        MaterialPage(child: RouteNotFoundView(name: Uri.base.toString()))
-      ];
+      addPage(RouteNotFoundView(name: Uri.base.toString()));
     return pages;
   }
 
