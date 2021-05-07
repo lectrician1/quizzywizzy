@@ -19,12 +19,14 @@ class AppHomeView extends StatelessWidget {
   Widget build(BuildContext context) {
     return BodyTemplate(
         child: FutureBuilder<QuerySnapshot>(
-            future: collection.get(),
+            future: collection.get(GetOptions(source: Source.cache)),
             builder:
                 (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+              /// If error
               if (snapshot.hasError) {
                 return Text("Something went wrong");
               }
+              /// Snapshot retreived so render
               if (snapshot.connectionState == ConnectionState.done) {
                 return ListView(
                   shrinkWrap: true,
