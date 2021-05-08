@@ -26,8 +26,10 @@ class AppHomeView extends StatelessWidget {
               if (snapshot.hasError) {
                 return Text("Something went wrong");
               }
+
               /// Snapshot retreived so render
               if (snapshot.connectionState == ConnectionState.done) {
+                print(snapshot.data.metadata.isFromCache);
                 return ListView(
                   shrinkWrap: true,
                   children: [
@@ -53,9 +55,7 @@ class AppHomeView extends StatelessWidget {
                                   type: doc.containsKey("questions")
                                       ? (doc["questions"] ? 0 : 1)
                                       : 2,
-                                  onTap: () {
-                                    delegate.push(doc["url"]);
-                                  });
+                                  onTap: () => delegate.push(doc["url"]));
                             })
                             .toList()
                             .cast<Widget>(),

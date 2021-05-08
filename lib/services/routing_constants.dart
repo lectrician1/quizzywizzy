@@ -1,5 +1,5 @@
 /// Used to push PseudoPages (views without url segments)
-enum PseudoPage {
+enum TopView {
   none,
   addQuestion,
   singleQuestion,

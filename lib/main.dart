@@ -17,10 +17,9 @@ Future<void> main() async {
   await Firebase.initializeApp();
   await AuthService.signInSilently();
 
-  setPathUrlStrategy();
+  FirebaseFirestore firestore = FirebaseFirestore.instance;
 
-  FirebaseFirestore.instance.settings =
-    Settings(cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED);
+  setPathUrlStrategy();
 
   runApp(QuizzyWizzyApp());
 }

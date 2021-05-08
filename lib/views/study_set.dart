@@ -20,219 +20,118 @@ class StudySetView extends StatefulWidget {
 }
 
 class _StudySetViewState extends State<StudySetView> {
-  CollectionReference collection;
-
-  /// Full list of questions from all documents
+  Stream<QuerySnapshot> snapshots;
+  Sort selectedSort;
   List questions;
 
-  Widget build(BuildContext context) {
-    collection = widget.collection;
-    questions = [];
+  void sort() {
+    switch (selectedSort) {
+      case Sort.ratingHigh:
+        questions.sort((a, b) => b["rating"].compareTo(a["rating"]));
+        break;
+      case Sort.ratingLow:
+        questions.sort((a, b) => a["rating"].compareTo(b["rating"]));
+        break;
+    }
+  }
 
+  @override
+  void initState() {
+    super.initState();
+    snapshots = widget.collection.snapshots();
+  }
+
+  Widget build(BuildContext context) {
     /// Return list
     return BodyTemplate(
-        child: StreamBuilder<QuerySnapshot>(
-            stream: collection.snapshots(),
-            builder:
-                (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-              if (snapshot.hasError) {
-                return Text('Something went wrong');
-              }
+        child: Stack(fit: StackFit.expand, children: [
+          /// StreamBuilder that runs every time the question list is changed
+      StreamBuilder<QuerySnapshot>(
+          stream: snapshots,
+          builder:
+              (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+            if (snapshot.hasError) {
+              return Text('Something went wrong');
+            }
 
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return LoadingView();
-              }
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return LoadingView();
+            }
 
-              /// Compile all questions from docs into one [List]
-              snapshot.data.docs.forEach((DocumentSnapshot document) {
-                document.data()["questions"].forEach((question) {
-                  questions.add(question);
-                });
+            questions = [];
+
+            /// Compile all questions from docs into one [List]
+            snapshot.data.docs.forEach((DocumentSnapshot document) {
+              document.data()["questions"].forEach((question) {
+                questions.add(question);
               });
+            });
 
-              /// Return list
-              return new Stack(fit: StackFit.expand, children: [
-                ListView.custom(
-                  childrenDelegate: SliverChildBuilderDelegate(
-                      (BuildContext context, int index) {
-                        return new Card(
-                            margin: const EdgeInsets.all(10.0),
-                            clipBehavior: Clip.antiAlias,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(15.0),
-                            ),
-                            key: ValueKey<int>(index),
-                            child: Material(
-                                color: Colors.blue,
-                                child: InkWell(
-                                    splashColor: Colors.red,
-                                    hoverColor: Colors.blue[600],
-                                    // onTap: ,
-                                    child: Container(
-                                        padding: const EdgeInsets.all(20.0),
-                                        child: Text(
-                                          questions[index]["name"],
-                                          textAlign: TextAlign.center,
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        )))));
-                      },
-                      childCount: questions.length,
-                      findChildIndexCallback: (Key key) {
-                        final ValueKey valueKey = key as ValueKey;
-                        final int data = valueKey.value;
-                        return data;
-                      }),
-                ),
-                Positioned(
-                  bottom: 20,
-                  right: 20,
-                  child: FloatingActionButton(
-                    onPressed: () =>
-                        widget.delegate.pushPseudo(PseudoPage.addQuestion),
-                    tooltip: 'Add Question',
-                    child: Icon(Icons.add),
-                  ),
-                ),
-                Positioned(
-                    bottom: 20,
-                    left: 20,
-                    child: PopupMenuButton<Sort>(
-                      icon: Icon(Icons.sort),
-                      onSelected: (Sort selected) {
-                        setState(() {
-                          switch (selected) {
-                            case Sort.ratingHigh:
-                              questions.sort(
-                                  (a, b) => b["rating"].compareTo(a["rating"]));
-                              break;
-                            case Sort.ratingLow:
-                              questions.sort(
-                                  (a, b) => a["rating"].compareTo(b["rating"]));
-                              break;
-                          }
-                        });
-                      },
-                      itemBuilder: (BuildContext context) =>
-                          <PopupMenuEntry<Sort>>[
-                        const PopupMenuItem<Sort>(
-                          value: Sort.ratingHigh,
-                          child: Text('Rating High to Low'),
+            /// Maintain the current sort, so sort the new list of questions
+            sort();
+
+            /// Return list
+            /// 
+            /// Is custom in case ever needs reordering back or other features
+            return new ListView.custom(
+              childrenDelegate: SliverChildBuilderDelegate(
+                  (BuildContext context, int index) {
+                    return new Card(
+                        margin: const EdgeInsets.all(10.0),
+                        clipBehavior: Clip.antiAlias,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15.0),
                         ),
-                        const PopupMenuItem<Sort>(
-                          value: Sort.ratingLow,
-                          child: Text('Rating Low to High'),
-                        )
-                      ],
-                    ))
-              ]);
-            }));
-  }
-}
-
-/* 
-import 'package:flutter/material.dart';
-
-void main() => runApp(MyApp());
-
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
+                        child: Material(
+                            color: Colors.blue,
+                            child: InkWell(
+                                splashColor: Colors.red,
+                                hoverColor: Colors.blue[600],
+                                onTap: () => widget.delegate.pushTemp(["questions", "1" /*questions[index]["id"]*/]),
+                                child: Container(
+                                    padding: const EdgeInsets.all(20.0),
+                                    child: Text(
+                                      questions[index]["name"],
+                                      textAlign: TextAlign.center,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    )))));
+                  },
+                  childCount: questions.length,
+                  ),
+            );
+          }),
+      Positioned(
+        bottom: 20,
+        right: 20,
+        child: FloatingActionButton(
+          onPressed: () => widget.delegate.pushPseudo(PseudoPage.addQuestion),
+          tooltip: 'Add Question',
+          child: Icon(Icons.add),
+        ),
       ),
-      home: MyListView(),
-    );
-  }
-}
-
-class MyListView extends StatefulWidget {
-  @override
-  _MyListViewState createState() => _MyListViewState();
-}
-
-class _MyListViewState extends State<MyListView> {
-  List<Map> items = [
-    {
-      "rating": 5,
-      "name":
-          "Which of the following observations is best explained by water’s high surface tension?a aaaaaaaaaaaaaaaaaaaaaaa aaaaaaaaaaaaaaaaaa aaaaaaaaaaaaaaaaaaaaaaaa"
-    },
-    {"rating": 3, "name": "ok"},
-    {"rating": 4, "name": "yes"},
-  ];
-
-  Color textColor = Color(0);
-
-  void _reverse() {
-    setState(() {
-      items = items.reversed.toList();
-    });
-  }
-
-  void _sort() {
-    setState(() {
-      items.sort((a, b) => a["rating"].compareTo(b["rating"]));
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        minimum: EdgeInsets.all(10.0),
-        child: ListView.custom(
-          childrenDelegate: SliverChildBuilderDelegate(
-              (BuildContext context, int index) {
-                return Card(
-                    margin: const EdgeInsets.all(10.0),
-                  clipBehavior: Clip.antiAlias,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15.0),
+      Positioned(
+          bottom: 20,
+          left: 20,
+          child: PopupMenuButton<Sort>(
+              icon: Icon(Icons.sort),
+              itemBuilder: (BuildContext context) => <PopupMenuEntry<Sort>>[
+                    const PopupMenuItem<Sort>(
+                      value: Sort.ratingHigh,
+                      child: Text('Rating High to Low'),
                     ),
-                    key: ValueKey<int>(index),
-                    child: Material(
-                        color: Colors.blue,
-                        child: InkWell(
-                            splashColor: Colors.red,
-                            hoverColor: Colors.blue[600],
-                            onTap: _sort,
-                            child: Container(
-                                padding: const EdgeInsets.all(20.0),
-                                child: Text(
-                                  items[index]["name"],
-                                  textAlign: TextAlign.center,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                )))));
-              },
-              childCount: items.length,
-              findChildIndexCallback: (Key key) {
-                final ValueKey valueKey = key as ValueKey;
-                final int data = valueKey.value;
-                return data;
-              }),
-        ),
-      ),
-      bottomNavigationBar: BottomAppBar(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            TextButton(
-              onPressed: () => _reverse(),
-              child: Text('Reverse items'),
-            ),
-            TextButton(
-              onPressed: () => _sort(),
-              child: Text('Sort rating'),
-            ),
-          ],
-        ),
-      ),
-    );
+                    const PopupMenuItem<Sort>(
+                      value: Sort.ratingLow,
+                      child: Text('Rating Low to High'),
+                    )
+                  ],
+              onSelected: (Sort selected) {
+                /// Set the state to rebuild the list with the new sort
+                setState(() {
+                  selectedSort = selected;
+                  sort();
+                });
+              }))
+    ]));
   }
 }
-*/

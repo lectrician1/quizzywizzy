@@ -29,62 +29,60 @@ class AppStack extends ChangeNotifier {
   List views;
   List<String> get hierarchy => _hierarchy;
 
-  PseudoPage _pseudoPage = PseudoPage.none;
-  PseudoPage get pseudoPage => _pseudoPage;
+  View _topView;
+  View get pseudoPage => _topView;
 
   AppStack({@required List<String> hierarchy})
       : _hierarchy = hierarchy,
         views = [
-    {"view": View.home}
-  ];
+          {"view": View.home}
+        ];
 
   /// Set a new hierarchy
   ///
   /// Used to set the requested url
   void setStack(List<String> otherHierarchy) {
     _hierarchy = List.from(otherHierarchy);
-    _pseudoPage = PseudoPage.none;
     notifyListeners();
   }
 
   /// Set a new hierarchy using a existing AppStack
   void copyCurrStack(AppStack curr) {
     _hierarchy = List.from(curr._hierarchy);
-    _pseudoPage = curr._pseudoPage;
+    _topView = curr._topView;
   }
 
   /// Set a new hierarchy using a existing AppStack
   void copyRequestedStack(AppStack requested) {
     _hierarchy = List.from(requested._hierarchy);
-    _pseudoPage = requested._pseudoPage;
+    _topView = requested._topView;
   }
 
   /// Remove a page from the hierarchy
   void pop() {
-    if (_pseudoPage == PseudoPage.none)
-      _hierarchy.removeLast();
-    else if (_lastHierarchy != null) {
+    if (_lastHierarchy != null) {
       _hierarchy = _lastHierarchy;
       _lastHierarchy = null;
-    } else
-      _pseudoPage = PseudoPage.none;
+    } else if (_topView != View.question)
+      _hierarchy.removeLast();
     notifyListeners();
   }
 
   /// Add a page to the hierarchy and view stack
   void push(String pathSegment) {
     _hierarchy.add(pathSegment);
-    _pseudoPage = PseudoPage.none;
+    _topView = View.none;
     notifyListeners();
   }
 
   void pushTemp(List<String> newHierarchy) {
     _lastHierarchy = _hierarchy;
     _hierarchy = newHierarchy;
+    notifyListeners();
   }
 
-  void pushPseudo(PseudoPage page) {
-    _pseudoPage = page;
+  void pushPseudo(View page) {
+    _topView = page;
     notifyListeners();
   }
 }
@@ -167,7 +165,7 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
   }
 
   /// pushes a pseudo path on to [_requested] stack. All calls will be ignored if [_loading] == true.
-  void pushPseudo(PseudoPage pseudoPage) {
+  void pushPseudo(View pseudoPage) {
     if (_loading) return;
     _requested.pushPseudo(pseudoPage);
   }
@@ -241,22 +239,12 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
           addPage(StudySetView(collection: _curr.views[i]["reference"]));
           break;
         case View.question:
+          addPage(SingleQuestionView());
+          i++;
           break;
         default:
           break;
       }
-    }
-
-    // Handle creation of pseudo-pages (views without url segments).
-    switch (_curr._pseudoPage) {
-      case PseudoPage.none:
-        break;
-      case PseudoPage.addQuestion:
-        pages.add(MaterialPage(child: AddQuestionView()));
-        break;
-      case PseudoPage.singleQuestion:
-        pages.add(MaterialPage(child: SingleQuestionView()));
-        break;
     }
 
     // Show loading view if page is loading.

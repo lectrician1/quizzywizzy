@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:quizzywizzy/services/routing_constants.dart';
 
-enum View { courses, units, topics, subtopics, home, questions, question }
+enum View { courses, units, topics, subtopics, home, questions, question,  }
 
 List<View> views = View.values;
 
@@ -25,16 +25,18 @@ Future<dynamic> getViews(List hierarchy) async {
         while (level < hierarchy.length) {
           QuerySnapshot query;
 
-          /// Get the documents in the collection
           try {
-            print("cache");
             query = await viewReferences[level]["reference"]
                 .get(GetOptions(source: Source.cache));
+            if (query == null)
+              query = viewReferences[level]["reference"]
+                  .get(GetOptions(source: Source.server));
           } catch (e) {
-            print("server cache");
-            query = await viewReferences[level]["reference"]
+            query = viewReferences[level]["reference"]
                 .get(GetOptions(source: Source.server));
           }
+
+          print("Is from cache? ${query.metadata.isFromCache}");
 
           /// If document has been found for this level
           bool foundDoc = false;
@@ -91,7 +93,12 @@ Future<dynamic> getViews(List hierarchy) async {
       case "questions":
 
         /// Check if document id is provided
-        if (hierarchy[1] != null) {
+        if (hierarchy.length == 2) {
+          if (hierarchy[1] == "1") {
+            viewReferences.add({"view": View.question});
+          }
+
+          /*
           /// Get document snapshot to see if the doc exists
           DocumentSnapshot snapshot = await FirebaseFirestore.instance
               .doc("questions/${hierarchy[1]}")
@@ -104,10 +111,12 @@ Future<dynamic> getViews(List hierarchy) async {
               "reference":
                   FirebaseFirestore.instance.doc("questions/${hierarchy[1]}")
             });
-        }
+          */
+        } else
+          return null;
         break;
 
-      /// hierarcy[0] not found
+      /// not found
       default:
         return null;
     }
