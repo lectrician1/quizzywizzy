@@ -1,9 +1,5 @@
 /// Used to push PseudoPages (views without url segments)
-enum TopView {
-  none,
-  addQuestion,
-  singleQuestion,
-}
+enum View { courses, units, topics, subtopics, home, questions, question, notFound}
 
 String getRoute(List<String> hierarchy) {
   return hierarchy.join("/");

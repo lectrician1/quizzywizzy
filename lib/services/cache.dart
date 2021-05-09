@@ -1,19 +1,18 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:quizzywizzy/services/routing_constants.dart';
 
-enum View { courses, units, topics, subtopics, home, questions, question,  }
-
-List<View> views = View.values;
+List<View> viewTypes = View.values;
+List<Map<String, dynamic>> home = [{"view": View.home}];
 
 Future<dynamic> getViews(List hierarchy) async {
-  List<Map<String, dynamic>> viewReferences = [
-    {"view": View.home}
-  ];
+  List<Map<String, dynamic>> views = [];
+  bool notFound = false;
 
-  if (hierarchy != null && hierarchy.isNotEmpty) {
+  /// Verify at least [hierarchy[0]] exists before calling it in the switch.
+  if (hierarchy.isNotEmpty) {
     switch (hierarchy[0]) {
       case "courses":
-        viewReferences.add({
+        views.add({
           "view": View.courses,
           "reference": FirebaseFirestore.instance.collection("courses")
         });
@@ -21,25 +20,26 @@ Future<dynamic> getViews(List hierarchy) async {
         /// Level iterator
         int level = 1;
 
-        /// Check each given level of the hierarchy to see if it has a valid page (Firestore document)
+        /// Check each given level of the hierarchy to see
+        /// if it has a valid page (Firestore document)
         while (level < hierarchy.length) {
           QuerySnapshot query;
 
           try {
-            query = await viewReferences[level]["reference"]
+            query = await views[level]["reference"]
                 .get(GetOptions(source: Source.cache));
             if (query == null)
-              query = viewReferences[level]["reference"]
+              query = views[level]["reference"]
                   .get(GetOptions(source: Source.server));
           } catch (e) {
-            query = viewReferences[level]["reference"]
+            query = views[level]["reference"]
                 .get(GetOptions(source: Source.server));
           }
 
           print("Is from cache? ${query.metadata.isFromCache}");
 
           /// If document has been found for this level
-          bool foundDoc = false;
+          bool foundLevel = false;
 
           /// Document iterator
           int i = 0;
@@ -47,32 +47,39 @@ Future<dynamic> getViews(List hierarchy) async {
           /// Check each document in the level if it has the url of the next level.
           /// That means the level is a valid page.
           while (i < query.docs.length) {
-            Map doc = query.docs[i].data();
+            Map<String, dynamic> doc = query.docs[i].data();
 
-            /// If the url segment equals the doc url, then the page exists
+            /// If the url segment equals the doc url.
             if (hierarchy[level] == doc["url"]) {
-              foundDoc = true;
+              /// The has been found and the page is availible.
+              foundLevel = true;
 
-              /// Add next level [View] and [CollectionReference] to [viewReferences]
-              ///
-              /// Add questions or next level view if "questions" field is present.
+              /// Add next level [View] and [CollectionReference] to [views]
+
+              /// Add [View.questions] "questions" field is present in doc
               if (doc["questions"] != null) {
-                viewReferences.add({
+                views.add({
                   "view": View.questions,
-                  "reference": viewReferences[level]["reference"]
+                  "reference": views[level]["reference"]
                       .doc(query.docs[i].id)
                       .collection("questions")
                 });
-              } else {
-                viewReferences.add({
-                  "view": views[level],
-                  "reference": viewReferences[level]["reference"]
+              }
+
+              /// Otherwise, add next level [View]
+              else {
+                views.add({
+                  "view": viewTypes[level],
+                  "reference": views[level]["reference"]
                       .doc(query.docs[i].id)
                       .collection(collectionNames[level])
                 });
               }
 
-              /// Stop checking documents on this level
+              /// Stop documents iterator because doc is found.
+              /// Prevents unecessary computation.
+              /// It's also why this is a while loop and not a for loop
+              /// (it can break).
               break;
             }
 
@@ -80,22 +87,28 @@ Future<dynamic> getViews(List hierarchy) async {
             i++;
           }
 
-          if (foundDoc)
+          if (foundLevel)
 
             /// Advance to the next level
             level++;
           else
 
-            /// Return null because doc was never found for the level
-            return null;
+            /// Declare notFound because doc was never found for the level
+            /// Do this now to cut down on unecessary further computation
+            notFound = true;
+
+          /// Stop levels iterator
+          break;
         }
         break;
+
       case "questions":
 
         /// Check if document id is provided
         if (hierarchy.length == 2) {
+          /// Temporary question page
           if (hierarchy[1] == "1") {
-            viewReferences.add({"view": View.question});
+            views.add({"view": View.question});
           }
 
           /*
@@ -106,20 +119,27 @@ Future<dynamic> getViews(List hierarchy) async {
 
           /// Return true if question document exists
           if (snapshot.exists)
-            viewReferences.add({
+            views.add({
               "view": View.question,
               "reference":
                   FirebaseFirestore.instance.doc("questions/${hierarchy[1]}")
             });
           */
-        } else
-          return null;
+        }
+
+        /// Not a valid "/questions" path
+        notFound = true;
         break;
 
-      /// not found
+      /// hierarchy[0] not found
       default:
-        return null;
+        notFound = true;
     }
   }
-  return viewReferences;
+
+  if (notFound) {
+    return home + [{"view": View.notFound}];
+  }
+
+  return home + views;
 }

@@ -4,7 +4,7 @@ import 'package:quizzywizzy/widgets/body_template.dart';
 class AddQuestionView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-   return BodyTemplate(child: MyCustomForm());
+   return Dialog(child: MyCustomForm());
   }
 }
 

@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:quizzywizzy/services/router.dart';
 import 'package:quizzywizzy/services/routing_constants.dart';
+import 'package:quizzywizzy/views/add_question.dart';
 import 'package:quizzywizzy/views/loading.dart';
+import 'package:quizzywizzy/views/single_question.dart';
 import 'package:quizzywizzy/widgets/body_template.dart';
 
 enum Sort { ratingHigh, ratingLow }
@@ -35,6 +37,7 @@ class _StudySetViewState extends State<StudySetView> {
     }
   }
 
+  /// Needed because [widget.collection.snapshots()] can't be called outside of a function
   @override
   void initState() {
     super.initState();
@@ -42,10 +45,9 @@ class _StudySetViewState extends State<StudySetView> {
   }
 
   Widget build(BuildContext context) {
-    /// Return list
     return BodyTemplate(
         child: Stack(fit: StackFit.expand, children: [
-          /// StreamBuilder that runs every time the question list is changed
+      /// StreamBuilder that runs every time the question list is changed
       StreamBuilder<QuerySnapshot>(
           stream: snapshots,
           builder:
@@ -58,6 +60,7 @@ class _StudySetViewState extends State<StudySetView> {
               return LoadingView();
             }
 
+            /// Reset list for new set of questions from DB
             questions = [];
 
             /// Compile all questions from docs into one [List]
@@ -87,7 +90,10 @@ class _StudySetViewState extends State<StudySetView> {
                             child: InkWell(
                                 splashColor: Colors.red,
                                 hoverColor: Colors.blue[600],
-                                onTap: () => widget.delegate.pushTemp(["questions", "1" /*questions[index]["id"]*/]),
+                                onTap: () { 
+                                  widget.delegate.pushTemp(["questions", "1" /*questions[index]["id"]*/]); 
+                                  showDialog(context: context, builder: (BuildContext context) => SingleQuestionView());
+                                },
                                 child: Container(
                                     padding: const EdgeInsets.all(20.0),
                                     child: Text(
@@ -105,7 +111,7 @@ class _StudySetViewState extends State<StudySetView> {
         bottom: 20,
         right: 20,
         child: FloatingActionButton(
-          onPressed: () => widget.delegate.pushPseudo(PseudoPage.addQuestion),
+          onPressed: () => showDialog(context: context, builder: (BuildContext context) => AddQuestionView()),
           tooltip: 'Add Question',
           child: Icon(Icons.add),
         ),
