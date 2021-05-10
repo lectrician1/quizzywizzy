@@ -103,7 +103,6 @@ class Cache {
   }
 
   List<Map> getLevels(List hierarchy) {
-    print(_cache);
 
     /// Docs in hierarchy order
     List<Map> levels = [];
@@ -133,8 +132,6 @@ class Cache {
       else
         addLevel(levels, collection);
     }
-
-    print("levels: $levels");
 
     return levels;
   }

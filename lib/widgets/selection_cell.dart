@@ -9,10 +9,10 @@ class SelectionCell extends StatefulWidget {
   final int type;
   final String text;
   final Function onTap;
-  final IconData icon;
+  final Widget image;
   SelectionCell(
       {@required this.text,
-      @required this.icon,
+      @required this.image,
       this.width = 250,
       this.height = 250,
       @required this.type,
@@ -20,7 +20,7 @@ class SelectionCell extends StatefulWidget {
   @override
   _SelectionCellState createState() => _SelectionCellState(
       text: text,
-      icon: icon,
+      image: image,
       width: width,
       height: height,
       type: type,
@@ -33,11 +33,11 @@ class _SelectionCellState extends State<SelectionCell> {
   final int type;
   final String text;
   final Function onTap;
-  final IconData icon;
+  final Widget image;
   bool hovered = false;
   _SelectionCellState(
       {@required this.text,
-      @required this.icon,
+      @required this.image,
       @required this.width,
       @required this.height,
       @required this.type,
@@ -70,7 +70,7 @@ class _SelectionCellState extends State<SelectionCell> {
                     Expanded(
                         flex: 1,
                         child: Center(
-                          child: Icon(icon),
+                          child: SizedBox(child: image, width: width/3, height: height/3),
                         )),
                     Expanded(
                       flex: 1,
