@@ -2,7 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:quizzywizzy/services/routing_constants.dart';
 
 List<View> viewTypes = View.values;
-List<Map<String, dynamic>> home = [{"view": View.home}];
+List<Map<String, dynamic>> home = [
+  {"view": View.home}
+];
 
 Future<dynamic> getViews(List hierarchy) async {
   List<Map<String, dynamic>> views = [];
@@ -18,11 +20,11 @@ Future<dynamic> getViews(List hierarchy) async {
         });
 
         /// Level iterator
-        int level = 1;
+        int level = 0;
 
         /// Check each given level of the hierarchy to see
         /// if it has a valid page (Firestore document)
-        while (level < hierarchy.length) {
+        while (level < hierarchy.length - 1) {
           QuerySnapshot query;
 
           try {
@@ -32,6 +34,7 @@ Future<dynamic> getViews(List hierarchy) async {
               query = views[level]["reference"]
                   .get(GetOptions(source: Source.server));
           } catch (e) {
+            print(e);
             query = views[level]["reference"]
                 .get(GetOptions(source: Source.server));
           }
@@ -50,14 +53,14 @@ Future<dynamic> getViews(List hierarchy) async {
             Map<String, dynamic> doc = query.docs[i].data();
 
             /// If the url segment equals the doc url.
-            if (hierarchy[level] == doc["url"]) {
+            if (hierarchy[level + 1] == doc["url"]) {
               /// The has been found and the page is availible.
               foundLevel = true;
 
               /// Add next level [View] and [CollectionReference] to [views]
 
               /// Add [View.questions] "questions" field is present in doc
-              if (doc["questions"] != null) {
+              if (doc["questions"] != null && doc["questions"] == true) {
                 views.add({
                   "view": View.questions,
                   "reference": views[level]["reference"]
@@ -69,10 +72,10 @@ Future<dynamic> getViews(List hierarchy) async {
               /// Otherwise, add next level [View]
               else {
                 views.add({
-                  "view": viewTypes[level],
+                  "view": viewTypes[level + 1],
                   "reference": views[level]["reference"]
                       .doc(query.docs[i].id)
-                      .collection(collectionNames[level])
+                      .collection(collectionNames[level + 1])
                 });
               }
 
@@ -91,14 +94,14 @@ Future<dynamic> getViews(List hierarchy) async {
 
             /// Advance to the next level
             level++;
-          else
-
+          else {
             /// Declare notFound because doc was never found for the level
             /// Do this now to cut down on unecessary further computation
             notFound = true;
 
-          /// Stop levels iterator
-          break;
+            /// Stop levels iterator
+            break;
+          }
         }
         break;
 
@@ -138,7 +141,10 @@ Future<dynamic> getViews(List hierarchy) async {
   }
 
   if (notFound) {
-    return home + [{"view": View.notFound}];
+    return home +
+        [
+          {"view": View.notFound}
+        ];
   }
 
   return home + views;
