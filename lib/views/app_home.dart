@@ -9,7 +9,6 @@ import 'package:quizzywizzy/services/router.dart';
 import 'package:quizzywizzy/widgets/body_template.dart';
 import 'package:quizzywizzy/widgets/selection_cell.dart';
 import 'package:transparent_image/transparent_image.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 class AppHomeView extends StatelessWidget {
   final String level;
