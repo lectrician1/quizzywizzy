@@ -90,10 +90,8 @@ class _StudySetViewState extends State<StudySetView> {
                             child: InkWell(
                                 splashColor: Colors.red,
                                 hoverColor: Colors.blue[600],
-                                onTap: () { 
-                                  widget.delegate.pushTemp(["questions", "1" /*questions[index]["id"]*/]); 
-                                  showDialog(context: context, builder: (BuildContext context) => SingleQuestionView());
-                                },
+                                onLongPress: () => showDialog(context: context, builder: (BuildContext context) => SingleQuestionView()),
+                                onTap: () => widget.delegate.push(questions[index]["id"]),
                                 child: Container(
                                     padding: const EdgeInsets.all(20.0),
                                     child: Text(
