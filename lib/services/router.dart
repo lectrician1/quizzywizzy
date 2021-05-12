@@ -92,12 +92,6 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
     _requested.push(pathSegment);
   }
 
-  /// Push a temporary hierarchy (url) but no view
-  void pushTemp(List<String> newHierarchy) {
-    if (_loading) return;
-    _requested.pushTemp(newHierarchy);
-  }
-
   /// Set a new hierarchy
   void setStack(List<String> hierarchy) {
     if (_loading) return;
@@ -115,11 +109,8 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
 
     /// Notify listeners to show loading page
     notifyListeners();
-
-    /// If not a [tempPush], get and set new [views] for [_requested].
-    if (!listEquals(_requested.lastHierarchy, _curr.hierarchy)) {
-      _requested.views = await getViews(_requested.hierarchy);
-    }
+    
+    _requested.views = await getViews(_requested.hierarchy);
 
     /// Copy [_requested.hierarchy] and [_requested.views] to [_curr] for
     /// page rendering and future [tempPush] references.
