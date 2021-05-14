@@ -177,8 +177,15 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
   }
 }
 
+class AppRouteInformationProvider extends RouteInformationProvider with ChangeNotifier{
+
+}
+
 /// Returns an AppStack using the current URL
 class AppRouteInformationParser extends RouteInformationParser<AppStack> {
+  @override
+  
+  
   @override
   Future<AppStack> parseRouteInformation(
       RouteInformation routeInformation) async {

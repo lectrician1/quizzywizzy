@@ -6,12 +6,13 @@ List<Map<String, dynamic>> home = [
   {"view": View.home}
 ];
 
-Future<dynamic> getViews(List hierarchy) async {
+Future<List> getViews(List hierarchy) async {
   List<Map<String, dynamic>> views = [];
   bool notFound = false;
 
   /// Verify at least [hierarchy[0]] exists before calling it in the switch.
   if (hierarchy.isNotEmpty) {
+    // courses view exists independently
     if (hierarchy[0] == "courses") {
       views.add({
         "view": View.courses,
@@ -50,19 +51,19 @@ Future<dynamic> getViews(List hierarchy) async {
 
           break;
 
-        /// hierarchy[0] not found
+        // [hierarchy[0]] exists but is not found
         default:
           notFound = true;
       }
     }
-
-    if (notFound || views == null) {
-      return home +
-          [
-            {"view": View.notFound}
-          ];
-    }
-
-    return home + views;
+    // If no [hierarchy[0]], then only home will return
   }
+  if (notFound) {
+    return home +
+      [
+        {"view": View.notFound}
+      ];
+  }
+
+  return home + views;
 }
