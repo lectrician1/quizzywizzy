@@ -49,10 +49,11 @@ class SignInDialogDomain extends StatelessWidget {
             Spacer(flex: 1),
             Expanded(
               flex: 5,
-              child: FadeInImage.memoryNetwork(
-                  fit: BoxFit.fitHeight,
-                  placeholder: kTransparentImage,
-                  image: "assets/images/naperville203.png"),
+              child: FadeInImage(
+                    fit: BoxFit.fitHeight,
+                    placeholder: MemoryImage(kTransparentImage),
+                    image: AssetImage("assets/images/naperville203.png"),
+              ),
             ),
             Spacer(flex: 1),
             Expanded(
