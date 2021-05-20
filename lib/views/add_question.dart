@@ -1,112 +1,183 @@
+/// Flutter code sample for Form
+// This example shows a [Form] with one [TextFormField] to enter an email
+// address and an [ElevatedButton] to submit the form. A [GlobalKey] is used here
+// to identify the [Form] and validate input.
+//
+// ![](https://flutter.github.io/assets-for-api-docs/assets/widgets/form.png)
+
 import 'package:flutter/material.dart';
-import 'package:quizzywizzy/widgets/body_template.dart';
+import 'package:flutter/foundation.dart';
+import 'package:provider/provider.dart';
 
-class AddQuestionView extends StatelessWidget {
+void main() => runApp(
+      ChangeNotifierProvider(
+        create: (context) => AnswersModel(),
+        child: MyApp(),
+      ),
+    );
+
+/// This is the main application widget.
+class MyApp extends StatelessWidget {
+  const MyApp({Key key}) : super(key: key);
+
+  static const String _title = 'Flutter Code Sample';
+
   @override
   Widget build(BuildContext context) {
-   return Dialog(child: MyCustomForm());
-  }
-}
-
-class MyCustomForm extends StatefulWidget {
-  @override
-  MyCustomFormState createState() {
-    return MyCustomFormState();
-  }
-}
-
-class MyCustomFormState extends State<MyCustomForm> {
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          child: TextField(
-            decoration: InputDecoration(
-              border: OutlineInputBorder(),
-              hintText: 'question title',
-            ),
-          ),
-        ),
-          Padding(
-          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          child: TextField(
-            decoration: InputDecoration(
-              border: OutlineInputBorder(),
-              hintText: 'greyout static',
-            ),
-          ),
-        ),
-      ],
+    return MaterialApp(
+      title: _title,
+      home: Scaffold(
+        appBar: AppBar(title: const Text(_title)),
+        body: Scrollbar(child: MyStatefulWidget()),
+      ),
     );
   }
 }
 
-class DynamicallyCheckbox extends StatefulWidget {
+/// This is the stateful widget that the main application instantiates.
+class MyStatefulWidget extends StatefulWidget {
+  const MyStatefulWidget({Key key}) : super(key: key);
+
   @override
-  DynamicallyCheckboxState createState() => new DynamicallyCheckboxState();
+  State<MyStatefulWidget> createState() => _MyStatefulWidgetState();
 }
 
-class DynamicallyCheckboxState extends State {
-
-  Map<String, bool> List = {
-    'A' : false,
-    'B' : false,
-    'C' : false,
-  };
-
-  var holder_1 = [];
-
-  getItems(){
-    List.forEach((key, value) {
-      if(value == true)
-      {
-        holder_1.add(key);
-      }
-    });
-
-    print(holder_1);
-    holder_1.clear();
-  }
+/// This is the private State class that goes with MyStatefulWidget.
+class _MyStatefulWidgetState extends State<MyStatefulWidget> {
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
-    return Column (children: <Widget>[
-      
+    var answersModal = context.watch<AnswersModel>();
+
+    return Form(
+        key: _formKey,
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 100, vertical: 4),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              TextFormField(
+                textAlign: TextAlign.center,
+                decoration: const InputDecoration(
+                  hintText: 'Question title',
+                ),
+                validator: (String value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter some text';
+                  }
+                  return null;
+                },
+              ),
+              TextFormField(
+                textAlign: TextAlign.center,
+                maxLines: null,
+                decoration: const InputDecoration(
+                  hintText: 'Question description',
+                ),
+                validator: (String value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter some text';
+                  }
+                  return null;
+                },
+              ),
+              Answers(),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16.0),
+                child: ElevatedButton(
+                    child: const Icon(Icons.add_rounded),
+                    onPressed: () {
+                      answersModal.add();
+                    }),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16.0),
+                child: ElevatedButton(
+                  onPressed: () {
+                    // Validate will return true if the form is valid, or false if
+                    // the form is invalid.
+                    if (_formKey.currentState.validate()) {
+                      // Process data.
+                    }
+                  },
+                  child: const Text('Submit'),
+                ),
+              ),
+            ],
+          ),
+        ));
+  }
+}
+
+class AnswersModel extends ChangeNotifier {
+  List<Widget> _answers = [Answer()];
+
+  List<Widget> get answers => _answers;
+
+  void add() {
+    _answers.add(Answer());
+    notifyListeners();
+  }
+
+  void remove(Key key) {
+    _answers.removeWhere((answer) => answer.key == key);
+    notifyListeners();
+  }
+}
+
+class Answers extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    var answersModel = context.watch<AnswersModel>();
+
+    return ListView.builder(
+        shrinkWrap: true,
+        itemCount: answersModel.answers.length,
+        itemBuilder: (context, index) => answersModel.answers[index]);
+  }
+}
+
+class Answer extends StatelessWidget {
+
+  @override
+  Widget build(BuildContext context) {
+
+    return Row(
+      children: <Widget>[
       Expanded(
-        child :
-        ListView(
-          children: List.keys.map((String key) {
-            return CheckboxListTile(
-              title: Text(key),
-              value: List[key],
-              activeColor: Colors.green[400],
-              checkColor: Colors.white,
-              onChanged: (bool value) {
-                setState(() {
-                  List[key] = value;
-                });
-              },
-            );
-          }).toList(),
+          child: TextFormField(
+        textAlign: TextAlign.center,
+        maxLines: null,
+        decoration: InputDecoration(
+          hintText: 'Answer',
         ),
+        validator: (String value) {
+          if (value == null || value.isEmpty) {
+            return 'Please enter some text';
+          }
+          return null;
+        },
       ),
-    
-        ElevatedButton(
-          child: Text(" Enter"),
-          onPressed: getItems,
-          style: ElevatedButton.styleFrom(
-           primary: Colors.green,
-           padding: EdgeInsets.fromLTRB(10, 10, 10, 10),
-           textStyle: TextStyle(
-             color:Colors.black
-           ),
-          )
       ),
-    
+      RemoveAnswer(key: key)
     ]);
-    
+  }
+}
+
+class RemoveAnswer extends StatelessWidget {
+
+  @override
+  Widget build(BuildContext context) {
+    var answersModel = context.watch<AnswersModel>();
+
+    if (answersModel.answers.length > 1) {
+      return ElevatedButton(
+        child: Icon(Icons.remove_rounded),
+        onPressed: () => answersModel.remove(key),
+      );
+    }
+
+    return Container(width: 0.0, height: 0.0);
   }
 }
