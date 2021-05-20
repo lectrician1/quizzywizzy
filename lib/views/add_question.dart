@@ -1,112 +1,91 @@
+/// Flutter code sample for Form
+// This example shows a [Form] with one [TextFormField] to enter an email
+// address and an [ElevatedButton] to submit the form. A [GlobalKey] is used here
+// to identify the [Form] and validate input.
+//
+// ![](https://flutter.github.io/assets-for-api-docs/assets/widgets/form.png)
+
 import 'package:flutter/material.dart';
-import 'package:quizzywizzy/widgets/body_template.dart';
+import 'package:flutter/foundation.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
+/// This is the stateful widget that the main application instantiates.
 class AddQuestionView extends StatelessWidget {
+  
+
+  void _submit (Map question) {
+    CollectionReference questions = FirebaseFirestore.instance.collection('questions');
+
+    questions.add(question)
+      .then((value) => print("User Added"))
+      .catchError((error) => print("Failed to add user: $error"));
+  }
+
   @override
   Widget build(BuildContext context) {
-   return Dialog(child: MyCustomForm());
-  }
-}
+    var question = {
+      "name": '',
+      "answers": [],
+    };
 
-class MyCustomForm extends StatefulWidget {
-  @override
-  MyCustomFormState createState() {
-    return MyCustomFormState();
-  }
-}
-
-class MyCustomFormState extends State<MyCustomForm> {
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          child: TextField(
-            decoration: InputDecoration(
-              border: OutlineInputBorder(),
-              hintText: 'question title',
-            ),
+    return Form(
+        key: _formKey,
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 100, vertical: 4),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+                  TextFormField(
+                    textAlign: TextAlign.center,
+                    maxLines: null,
+                    decoration: const InputDecoration(
+                      hintText: 'Question description',
+                    ),
+                    validator: (String value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter some text';
+                      }
+                      return null;
+                    },
+                    onFieldSubmitted: (String field) => question['name'] = field,
+                  )
+                ] +
+                List.filled(
+                    4,
+                    Row(children: <Widget>[
+                      Expanded(
+                          child: TextFormField(
+                        textAlign: TextAlign.center,
+                        maxLines: null,
+                        decoration: const InputDecoration(
+                          hintText: 'Answer',
+                        ),
+                        validator: (String value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter some text';
+                          }
+                          return null;
+                        },
+                        onFieldSubmitted: (String field) => question['answers'].add(field),
+                      ))
+                    ])) +
+                [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 16.0),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        // Validate will return true if the form is valid, or false if
+                        // the form is invalid.
+                        if (_formKey.currentState.validate()) {
+                          // Process data.
+                          _submit();
+                        }
+                      },
+                      child: const Text('Submit'),
+                    ),
+                  ),
+                ],
           ),
-        ),
-          Padding(
-          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          child: TextField(
-            decoration: InputDecoration(
-              border: OutlineInputBorder(),
-              hintText: 'greyout static',
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class DynamicallyCheckbox extends StatefulWidget {
-  @override
-  DynamicallyCheckboxState createState() => new DynamicallyCheckboxState();
-}
-
-class DynamicallyCheckboxState extends State {
-
-  Map<String, bool> List = {
-    'A' : false,
-    'B' : false,
-    'C' : false,
-  };
-
-  var holder_1 = [];
-
-  getItems(){
-    List.forEach((key, value) {
-      if(value == true)
-      {
-        holder_1.add(key);
-      }
-    });
-
-    print(holder_1);
-    holder_1.clear();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column (children: <Widget>[
-      
-      Expanded(
-        child :
-        ListView(
-          children: List.keys.map((String key) {
-            return CheckboxListTile(
-              title: Text(key),
-              value: List[key],
-              activeColor: Colors.green[400],
-              checkColor: Colors.white,
-              onChanged: (bool value) {
-                setState(() {
-                  List[key] = value;
-                });
-              },
-            );
-          }).toList(),
-        ),
-      ),
-    
-        ElevatedButton(
-          child: Text(" Enter"),
-          onPressed: getItems,
-          style: ElevatedButton.styleFrom(
-           primary: Colors.green,
-           padding: EdgeInsets.fromLTRB(10, 10, 10, 10),
-           textStyle: TextStyle(
-             color:Colors.black
-           ),
-          )
-      ),
-    
-    ]);
-    
+        ));
   }
 }
