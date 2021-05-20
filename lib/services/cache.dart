@@ -111,7 +111,7 @@ Future<dynamic> getViews(List hierarchy) async {
         if (hierarchy.length == 2) {
           /// Temporary question page
           if (hierarchy[1] == "1") {
-            views.add({"view": View.question});
+            views.add({"view": View.question, "reference": FirebaseFirestore.instance.doc("/questions/47bSFU9INGhMIUHlp1Ev")});
           }
 
           /*
@@ -130,8 +130,12 @@ Future<dynamic> getViews(List hierarchy) async {
           */
         }
 
-        /// Not a valid "/questions" path
-        notFound = true;
+        else {
+
+          /// Not a valid "/questions" path
+          notFound = true;
+          
+        }
         break;
 
       /// hierarchy[0] not found
