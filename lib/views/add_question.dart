@@ -1,112 +1,109 @@
 import 'package:flutter/material.dart';
-import 'package:quizzywizzy/widgets/body_template.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-class AddQuestionView extends StatelessWidget {
+/// This is the stateful widget that the main application instantiates.
+class AddQuestionView extends StatefulWidget {
+  final CollectionReference collection;
+  AddQuestionView(this.collection);
+
   @override
-  Widget build(BuildContext context) {
-   return BodyTemplate(child: MyCustomForm());
-  }
+  _AddQuestionViewState createState() => _AddQuestionViewState();
 }
 
-class MyCustomForm extends StatefulWidget {
-  @override
-  MyCustomFormState createState() {
-    return MyCustomFormState();
-  }
-}
+class _AddQuestionViewState extends State<AddQuestionView> {
+  final GlobalKey<FormState> _formKey = GlobalKey();
 
-class MyCustomFormState extends State<MyCustomForm> {
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          child: TextField(
-            decoration: InputDecoration(
-              border: OutlineInputBorder(),
-              hintText: 'question title',
-            ),
-          ),
-        ),
-          Padding(
-          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          child: TextField(
-            decoration: InputDecoration(
-              border: OutlineInputBorder(),
-              hintText: 'greyout static',
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class DynamicallyCheckbox extends StatefulWidget {
-  @override
-  DynamicallyCheckboxState createState() => new DynamicallyCheckboxState();
-}
-
-class DynamicallyCheckboxState extends State {
-
-  Map<String, bool> List = {
-    'A' : false,
-    'B' : false,
-    'C' : false,
+  var question = {
+    "name": '',
+    "answers": [],
   };
 
-  var holder_1 = [];
+  void _submit() async {
+    CollectionReference questions =
+        FirebaseFirestore.instance.collection('questions');
 
-  getItems(){
-    List.forEach((key, value) {
-      if(value == true)
-      {
-        holder_1.add(key);
-      }
-    });
+    String questionID;
+    await questions
+        .add(question)
+        .then((value) {
+          print("Question Added");
+          questionID = value.id;
+        })
+        .catchError((error) => print("Failed to add question: $error"));
 
-    print(holder_1);
-    holder_1.clear();
+    widget.collection
+        .doc("5hHxF5dpGE8flf375FCY")
+        .update({
+          "questions": FieldValue.arrayUnion([{"name": question["name"], "rating": 1, "id": questionID}])
+        })
+        .then((value) => print("Question Added to List"))
+        .catchError((error) => print("Failed to add question to list: $error"));
   }
 
   @override
   Widget build(BuildContext context) {
-    return Column (children: <Widget>[
-      
-      Expanded(
-        child :
-        ListView(
-          children: List.keys.map((String key) {
-            return CheckboxListTile(
-              title: Text(key),
-              value: List[key],
-              activeColor: Colors.green[400],
-              checkColor: Colors.white,
-              onChanged: (bool value) {
-                setState(() {
-                  List[key] = value;
-                });
-              },
-            );
-          }).toList(),
-        ),
-      ),
-    
-        ElevatedButton(
-          child: Text(" Enter"),
-          onPressed: getItems,
-          style: ElevatedButton.styleFrom(
-           primary: Colors.green,
-           padding: EdgeInsets.fromLTRB(10, 10, 10, 10),
-           textStyle: TextStyle(
-             color:Colors.black
-           ),
-          )
-      ),
-    
-    ]);
-    
+    return Dialog(
+        child: Form(
+            key: _formKey,
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 100, vertical: 4),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                      TextFormField(
+                        textAlign: TextAlign.center,
+                        maxLines: null,
+                        decoration: const InputDecoration(
+                          hintText: 'Question description',
+                        ),
+                        validator: (String value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter some text';
+                          }
+                          return null;
+                        },
+                        onSaved: (value) => question['name'] = value,
+                      )
+                    ] +
+                    List.filled(
+                        4,
+                        Row(children: <Widget>[
+                          Expanded(
+                              child: TextFormField(
+                            textAlign: TextAlign.center,
+                            maxLines: null,
+                            decoration: const InputDecoration(
+                              hintText: 'Answer',
+                            ),
+                            validator: (String value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter some text';
+                              }
+                              return null;
+                            },
+                            onSaved: (value) => (question['answers'] as List)
+                                .add({"answer": value}),
+                          ))
+                        ])) +
+                    [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 16.0),
+                        child: ElevatedButton(
+                          onPressed: () {
+                            // Validate will return true if the form is valid, or false if
+                            // the form is invalid.
+                            if (_formKey.currentState.validate()) {
+                              _formKey.currentState.save();
+                              // Process data.
+                              _submit();
+                              Navigator.of(context).pop();
+                            }
+                          },
+                          child: const Text('Submit'),
+                        ),
+                      ),
+                    ],
+              ),
+            )));
   }
 }

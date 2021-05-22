@@ -1,5 +1,5 @@
 import 'dart:async';
-
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:provider/provider.dart';
@@ -16,10 +16,11 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   await AuthService.signInSilently();
-  //configureApp();
+
+  FirebaseFirestore firestore = FirebaseFirestore.instance;
 
   setPathUrlStrategy();
-  
+
   runApp(QuizzyWizzyApp());
 }
 

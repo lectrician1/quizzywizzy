@@ -11,7 +11,7 @@ class HomeView extends StatelessWidget {
         child: Center(
           child: ElevatedButton(
               onPressed: () {
-                delegate.setStack(["app"]);
+                delegate.setStack(["courses"]);
               },
               child: Text("Launch App")),
         ));

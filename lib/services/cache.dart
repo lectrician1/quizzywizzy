@@ -1,138 +1,152 @@
-/*
-  Map<String, dynamic> cache = {
-    "courses" : {
-      "reference" : CollectionReference,
-      "view" : "Courses",
-      "documents" : {
-        "ap-calculus" : {
-          "fields" : {
-            "name" : "AP Calculus"
-          },
-          "collection" : {
-            "reference" : CollectionReference
-            "view" : "Units"
-            "documents" : [ 
-              {
-                "fields" : {
-                  name = "Series"
-                }
-              }
-            ]
-          }
-        }
-      }
-    }
-    "questions" : ...
-  };
-*/
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:quizzywizzy/services/routing_constants.dart';
 
-class Cache {
-  Map<String, dynamic> _cache;
+List<View> viewTypes = View.values;
+List<Map<String, dynamic>> home = [
+  {"view": View.home}
+];
 
-  Cache() {
-    _cache = {
-      "courses": {
-        "reference": FirebaseFirestore.instance.collection("courses"),
-        "view": "courses",
-        "documents": {}
-      }
-    };
-  }
+Future<dynamic> getViews(List hierarchy) async {
+  List<Map<String, dynamic>> views = [];
+  bool notFound = false;
 
-  Future<bool> storeDocs(List hierarchy) async {
-    Map collection = _cache[hierarchy[0]];
+  /// Verify at least [hierarchy[0]] exists before calling it in the switch.
+  if (hierarchy.isNotEmpty) {
+    switch (hierarchy[0]) {
+      case "courses":
+        views.add({
+          "view": View.courses,
+          "reference": FirebaseFirestore.instance.collection("courses")
+        });
 
-    int nextLevel = 1;
+        /// Level iterator
+        int level = 0;
 
-    while (nextLevel <= hierarchy.length) {
-      if (collection["documents"].isEmpty) {
-        QuerySnapshot query = await collection["reference"].get();
+        /// Check each given level of the hierarchy to see
+        /// if it has a valid page (Firestore document)
+        while (level < hierarchy.length - 1) {
+          QuerySnapshot query;
 
-        if (collection["view"] == "questions") {
-          /// Declare documents as [List] (required)
-          collection["documents"] = [];
+          try {
+            query = await views[level]["reference"]
+                .get(/*GetOptions(source: Source.cache)*/);
+          } catch (e) {
+            print(e);
+            query = views[level]["reference"]
+                .get(GetOptions(source: Source.server));
+          }
 
-          query.docs.forEach((docSnap) {
-            collection["documents"].addAll(docSnap.data()["questions"]);
-          });
-          break;
-        } else {
-          /// Declare documents as [Map] (required)
-          collection["documents"] = {};
+          print("Is from cache? ${query.metadata.isFromCache}");
 
-          query.docs.forEach((docSnap) {
-            Map fields = docSnap.data();
+          /// If document has been found for this level
+          bool foundLevel = false;
 
-            String view = "level";
-            CollectionReference collectionReference;
+          /// Document iterator
+          int i = 0;
 
-            if (fields["questions"] != null && fields["questions"]) {
-              view = "questions";
-              collectionReference = docSnap.reference.collection("questions");
-            } else {
-              view = collectionNames[nextLevel];
-              collectionReference =
-                  docSnap.reference.collection(collectionNames[nextLevel]);
+          /// Check each document in the level if it has the url of the next level.
+          /// That means the level is a valid page.
+          while (i < query.docs.length) {
+            Map<String, dynamic> doc = query.docs[i].data();
+
+            /// If the url segment equals the doc url.
+            if (hierarchy[level + 1] == doc["url"]) {
+              /// The has been found and the page is availible.
+              foundLevel = true;
+
+              /// Add next level [View] and [CollectionReference] to [views]
+
+              /// Add [View.questions] "questions" field is present in doc
+              if (doc["questions"] != null && doc["questions"] == true) {
+                views.add({
+                  "view": View.questions,
+                  "reference": views[level]["reference"]
+                      .doc(query.docs[i].id)
+                      .collection("questions")
+                });
+              }
+
+              /// Otherwise, add next level [View]
+              else {
+                views.add({
+                  "view": viewTypes[level + 1],
+                  "reference": views[level]["reference"]
+                      .doc(query.docs[i].id)
+                      .collection(collectionNames[level + 1])
+                });
+              }
+
+              /// Stop documents iterator because doc is found.
+              /// Prevents unecessary computation.
+              /// It's also why this is a while loop and not a for loop
+              /// (it can break).
+              break;
             }
 
-            collection["documents"][fields["url"]] = {
-              "fields": fields,
-              "collection": {
-                "reference": collectionReference,
-                "view": view,
-                "documents": {}
-              }
-            };
-          });
+            /// Advance to the next document
+            i++;
+          }
+
+          if (foundLevel)
+
+            /// Advance to the next level
+            level++;
+          else {
+            /// Declare notFound because doc was never found for the level
+            /// Do this now to cut down on unecessary further computation
+            notFound = true;
+
+            /// Stop levels iterator
+            break;
+          }
         }
-      }
-      if (nextLevel != hierarchy.length) {
-        if (collection["documents"][hierarchy[nextLevel]] == null)
-          return true;
-        else
-          collection =
-              collection["documents"][hierarchy[nextLevel]]["collection"];
-      } else
         break;
-      nextLevel++;
-    }
 
-    return false;
+      case "questions":
+
+        /// Check if document id is provided
+        if (hierarchy.length == 2) {
+          /// Temporary question page
+          if (hierarchy[1] == "1") {
+            views.add({"view": View.question, "reference": FirebaseFirestore.instance.doc("/questions/47bSFU9INGhMIUHlp1Ev")});
+          }
+
+          /*
+          /// Get document snapshot to see if the doc exists
+          DocumentSnapshot snapshot = await FirebaseFirestore.instance
+              .doc("questions/${hierarchy[1]}")
+              .get();
+
+          /// Return true if question document exists
+          if (snapshot.exists)
+            views.add({
+              "view": View.question,
+              "reference":
+                  FirebaseFirestore.instance.doc("questions/${hierarchy[1]}")
+            });
+          */
+        }
+
+        else {
+
+          /// Not a valid "/questions" path
+          notFound = true;
+          
+        }
+        break;
+
+      /// hierarchy[0] not found
+      default:
+        notFound = true;
+    }
   }
 
-  List<Map> getLevels(List hierarchy) {
-
-    /// Docs in hierarchy order
-    List<Map> levels = [];
-
-    void addLevel(List levels, Map collection) {
-      levels.add({
-        "view": collection["view"],
-        "docs": collection["documents"]
-            .entries
-            .map((doc) => doc.value["fields"])
-            .toList()
-      });
-    }
-
-    Map collection = _cache[hierarchy[0]];
-
-    addLevel(levels, collection);
-
-    for (int i = 1; i < hierarchy.length; i++) {
-      collection = collection["documents"][hierarchy[i]]["collection"];
-      String view = collection["view"];
-
-      if (view == "questions") {
-        levels
-            .add({"view": view, "docs": collection["documents"]});
-      }
-      else
-        addLevel(levels, collection);
-    }
-
-    return levels;
+  if (notFound) {
+    return home +
+        [
+          {"view": View.notFound}
+        ];
   }
+
+  return home + views;
 }

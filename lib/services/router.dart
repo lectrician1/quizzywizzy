@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 /// Needed to create views
 import 'package:flutter/material.dart';
 
@@ -8,77 +10,105 @@ import 'package:quizzywizzy/services/cache.dart';
 import 'package:quizzywizzy/services/routing_constants.dart';
 
 /// Views
-import 'package:quizzywizzy/views/add_question.dart';
 import 'package:quizzywizzy/views/app_home.dart';
+import 'package:quizzywizzy/views/home.dart';
 import 'package:quizzywizzy/views/loading.dart';
 import 'package:quizzywizzy/views/single_question.dart';
 import 'package:quizzywizzy/views/study_set.dart';
 import 'package:quizzywizzy/views/route_not_found.dart';
 
-/// A class that stores a list/stack of path segments (called [hierarchy]).
-///
-/// e.g. [courses, AP Calculus BC, Unit 1]
-///
-/// It notifys any listeners whenever there is a change in the [hierarchy].
-///
-/// It is used for requested and curren
+/// Helper function that adds a [MaterialPage] to [pages]
+void addPage(Widget widget, List<Page<dynamic>> pages) {
+  pages.add(MaterialPage(child: widget));
+}
+
 class AppStack extends ChangeNotifier {
+
+  /// The URL as a list
+  /// 
+  /// e.g. [courses, AP Calculus BC, Unit 1]
   List<String> _hierarchy;
+
+  /// Stores the hierarchy of the previous page visited
+  /// to go back to that page after a [pop] of a temporary page.
   List<String> _lastHierarchy;
+
+  List<Map<String, dynamic>> views;
+
   List<String> get hierarchy => _hierarchy;
 
-  PseudoPage _pseudoPage = PseudoPage.none;
-  PseudoPage get pseudoPage => _pseudoPage;
+  AppStack({@required List<String> hierarchy})
+      : _hierarchy = hierarchy,
 
-  AppStack({@required List<String> hierarchy}) : _hierarchy = hierarchy;
+        /// This is needed for now since [_getPages] is called when
+        /// the app launches before updateStack
+        views = [
+          {"view": View.home}
+        ];
 
   /// Set a new hierarchy
   ///
   /// Used to set the requested url
   void setStack(List<String> otherHierarchy) {
     _hierarchy = List.from(otherHierarchy);
-    _pseudoPage = PseudoPage.none;
     notifyListeners();
   }
 
-  /// Set a new hierarchy using a existing AppStack
-  void copyCurrStack(AppStack curr) {
-    _hierarchy = List.from(curr._hierarchy);
-    _pseudoPage = curr._pseudoPage;
+  /// Copy an AppStack
+  /// 
+  /// Used to copy between [_requested] and [_curr]
+  void copyStack(AppStack stack) {
+    _hierarchy = List.from(stack._hierarchy);
+    views = List.from(stack.views);
   }
 
-  /// Set a new hierarchy using a existing AppStack
-  void copyRequestedStack(AppStack requested) {
-    _hierarchy = List.from(requested._hierarchy);
-    _pseudoPage = requested._pseudoPage;
-  }
-
-  /// Remove a page from the hierarchy
+  /// Go back to intended view or url dependening on router state
   void pop() {
-    if (_pseudoPage == PseudoPage.none)
-      _hierarchy.removeLast();
-    else if (_lastHierarchy != null) {
+    /// If tempPush
+    if (_lastHierarchy != null) {
+      /// Revert to last hierarchy
       _hierarchy = _lastHierarchy;
+
+      /// Set to null to prevent view from not being actually popped after
+      /// a [_lastHierarchy] was assigned since this condtional block depends
+      /// on [_lastHierarchy != null]
+      ///
+      /// For example, if a tempPush to a question view occured and
+      /// the user popped with [_lastHierarchy] not being set to null afterwards,
+      /// the next time they pop, since [_lastHierarchy != null],
+      /// the intended [hierarchy.removeLast()] would not occur and
+      /// this condition would instead.
       _lastHierarchy = null;
-    } else
-      _pseudoPage = PseudoPage.none;
+    }
+
+    /// If question view, clear [hierarcy] to go to home
+    ///
+    /// We cannot just [removeLast] because the route for this view is:
+    /// "/questions/questionid"
+    ///
+    /// And "/questions" has no page and we want to go to home ("/")
+    else if (views.last["view"] == View.question)
+      hierarchy.clear();
+
+    /// Otherwise, remove last from hierarchy,
+    /// which removes last from url,
+    /// which removes the top view
+    else
+      hierarchy.removeLast();
+
     notifyListeners();
   }
 
   /// Add a page to the hierarchy and view stack
   void push(String pathSegment) {
     _hierarchy.add(pathSegment);
-    _pseudoPage = PseudoPage.none;
     notifyListeners();
   }
 
+  /// Push a temporary hierarchy (url) but no view
   void pushTemp(List<String> newHierarchy) {
     _lastHierarchy = _hierarchy;
     _hierarchy = newHierarchy;
-  }
-
-  void pushPseudo(PseudoPage page) {
-    _pseudoPage = page;
     notifyListeners();
   }
 }
@@ -99,31 +129,22 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
   /// A stack that represents the currently rendered pages.
   AppStack _curr;
 
-  /// Represents any additional page.
-  ///
-  /// See [AdditionalPage] enum for more details.
-  AdditionalPage _additionalPage;
-
   /// Represents whether or not [_updateStack] has already been called.
   bool _loading;
 
-  Cache _cache;
-
   AppStack get currentConfiguration => _requested;
 
-  /// Main constructor that initializes all of the needed AppStacks for the router
+  /// Main constructor that initializes all of the needed AppStacks for 
+  /// the routerand more
+  /// 
+  /// The stuff after the colon always excecutes before the stuff 
+  /// after the brackets
   AppRouterDelegate()
       : navigatorKey = GlobalKey<NavigatorState>(),
         _requested = AppStack(hierarchy: []),
-
-        /// Courses needs to be in the current heirarchy or else getPages will never know what the "first page" is.
-        /// This is temporary until an actual homepage is created and getPages can account for no first hierarchy
-        _curr = AppStack(hierarchy: ["courses"]),
-        _additionalPage = AdditionalPage.none,
-
-        /// Initialize local storage
-        _cache = new Cache(),
+        _curr = AppStack(hierarchy: []),
         _loading = false {
+
     /// Add [_updateStack] as listener function
     /// [_updateStack] is called every time [_requested] is changed
     _requested.addListener(_updateStack);
@@ -139,138 +160,104 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
     );
   }
 
+  /// Used by Router
+  /// 
+  /// This has to be a [AppStack.hierarchy] because [AppRouteInformationParser]
+  /// sets starting hierarchy but doesn't initialize [_requested].
+  /// It's pretty stupid.
   bool canPop() {
-    return _additionalPage != AdditionalPage.none ||
-        _requested.hierarchy.length > 1;
+    return _requested.hierarchy.length > 0;
   }
 
-  /// pops [_requested] stack. All calls will be ignored if [_loading] == true.
+  /// [_loading]-dependent [AppStack] method reimplementations
+
+  /// Go back to intended view or url dependening on router state
   void pop() {
     if (_loading) return;
-    if (_additionalPage != AdditionalPage.none) {
-      _additionalPage = AdditionalPage.none;
-      _requested.copyCurrStack(_curr);
-      notifyListeners();
-    } else
-      _requested.pop();
+    _requested.pop();
   }
 
-  /// pushes a path segment on to [_requested] stack. All calls will be ignored if [_loading] == true.
+  /// Add a page to the hierarchy and view stack
   void push(String pathSegment) {
     if (_loading) return;
     _requested.push(pathSegment);
   }
 
+  /// Push a temporary hierarchy (url) but no view
   void pushTemp(List<String> newHierarchy) {
     if (_loading) return;
     _requested.pushTemp(newHierarchy);
   }
 
-  /// pushes a pseudo path on to [_requested] stack. All calls will be ignored if [_loading] == true.
-  void pushPseudo(PseudoPage pseudoPage) {
-    if (_loading) return;
-    _requested.pushPseudo(pseudoPage);
-  }
-
-  /// updates [_requested] stack. All calls will be ignored if [_loading] == true.
+  /// Set a new hierarchy
   void setStack(List<String> hierarchy) {
     if (_loading) return;
     _requested.setStack(hierarchy);
   }
 
-  /// Updates the [_curr] stack.
+  /// Tests [_requested.hierarchy] and [_requested.lastHierarchy]'s state to see 
+  /// if [_requested.hierarchy] (the url) or views need to change.
   ///
-  /// Runs whenever a page is requested
-  ///
-  /// DETAILED DECRIPTION:
-  ///
-  /// Rebuilds the navigator (calling [_getPages] in the process) whenever it changes [_status]. It does so whenever it calls [notifyListeners].
-  /// (In Navigator 2.0, a pre-programmed Router class listens to [AppRouterDelegate] and calls the delegate's [build] whenever the Router is notified.)
-  ///
-  /// All calls will be ignored if [_loading] == true. [_loading] will be set to true during this method.
-  ///
-  /// This method is in charge of evaluating whether or not [AppStatus.notFound] based on [_requested].
-  /// If [AdditionalPage.none], then [_curr] replaces its hierarchy with [_requested]'s hierarchy.
-  /// Otherwise, [_curr] stays the same.
+  /// Runs about whenever [notifyListeners] is called
   Future<void> _updateStack() async {
+    /// If loading
     if (_loading) return;
     _loading = true;
+
+    /// Notify listeners to show loading page
     notifyListeners();
 
-    /// Always set that there is no additional page when updateStack is called.
-    _additionalPage = AdditionalPage.none;
+    /// If not a [tempPush], get and set new [views] for [_requested].
+    if (!listEquals(_requested._lastHierarchy, _curr.hierarchy)) {
+      _requested.views = await getViews(_requested.hierarchy);
+    }
 
-    if (await _cache.storeDocs(_requested.hierarchy))
-      _additionalPage = AdditionalPage.notFound;
+    /// Copy [_requested.hierarchy] and [_requested.views] to [_curr] for 
+    /// page rendering and future [tempPush] references.
+    _curr.copyStack(_requested);
 
-    if (_additionalPage == AdditionalPage.none)
-      _curr.copyRequestedStack(_requested);
+    /// Finish
     _loading = false;
 
+    /// Notify listeners to show actual page
     notifyListeners();
   }
 
-  /// Generates pages for the [Navigator] based on [_curr] and [_additionalPage]
+  /// Generates pages for the [Navigator] based on [_curr.views]
   List<Page<dynamic>> _getPages() {
     // Page stack in order
     List<Page<dynamic>> pages = [];
 
-    List hierarchy = _curr.hierarchy;
+    print(_curr.views);
 
-    List hierarchyLevels = _cache.getLevels(hierarchy);
-    
-    /// Cases for handling the pages of each of the root paths
-    switch (hierarchy[0]) {
-      case "courses":
-
-        /// Add heirarchy pages
-        for (Map level in hierarchyLevels) {
-          if (level["view"] == "questions") {
-            pages.add(
-                MaterialPage(child: StudySetView(questions: level["docs"])));
-          } else {
-            pages.add(MaterialPage(
-                child: AppHomeView(level: level["view"], docs: level["docs"])));
-          }
-        }
-        break;
-      case "question":
-        break;
-      case "sproutset":
-        break;
-      case "user":
-        break;
-      default:
-        break;
-    }
-
-    // Handle creation of pseudo-pages (views without url segments).
-    switch (_curr._pseudoPage) {
-      case PseudoPage.none:
-        break;
-      case PseudoPage.addQuestion:
-        pages.add(MaterialPage(child: AddQuestionView()));
-        break;
-      case PseudoPage.singleQuestion:
-        pages.add(MaterialPage(child: SingleQuestionView()));
-        break;
+    /// Add each of the views to pages
+    for (int i = 0; i < _curr.views.length; i++) {
+      switch (_curr.views[i]["view"]) {
+        case View.home:
+          addPage(HomeView(), pages);
+          break;
+        case View.courses:
+        case View.units:
+        case View.topics:
+        case View.subtopics:
+          addPage(AppHomeView(collection: _curr.views[i]["reference"]), pages);
+          break;
+        case View.questions:
+          addPage(StudySetView(collection: _curr.views[i]["reference"]), pages);
+          break;
+        case View.notFound:
+          addPage(RouteNotFoundView(name: Uri.base.toString()), pages);
+          break;
+        default:
+          break;
+      }
     }
 
     // Show loading view if page is loading.
     if (_loading) {
-      pages += [MaterialPage(child: LoadingView())];
-      return pages;
+      addPage(LoadingView(), pages);
     }
-
-    switch (_additionalPage) {
-      case AdditionalPage.none:
-        break;
-      case AdditionalPage.notFound:
-        pages += [
-          MaterialPage(child: RouteNotFoundView(name: Uri.base.toString()))
-        ];
-        break;
-    }
+    
     return pages;
   }
 
@@ -281,7 +268,7 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
   }
 }
 
-/// A class that parses urls into [AppStack]s, and [AppStack]s into urls.
+/// Returns an AppStack using the current URL
 class AppRouteInformationParser extends RouteInformationParser<AppStack> {
   @override
   Future<AppStack> parseRouteInformation(
