@@ -74,43 +74,50 @@ class _StudySetViewState extends State<StudySetView> {
             sort();
 
             /// Return list
-            /// 
+            ///
             /// Is custom in case ever needs reordering back or other features
             return new ListView.custom(
               childrenDelegate: SliverChildBuilderDelegate(
-                  (BuildContext context, int index) {
-                    return new Card(
-                        margin: const EdgeInsets.all(10.0),
-                        clipBehavior: Clip.antiAlias,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15.0),
-                        ),
-                        child: Material(
-                            color: Colors.blue,
-                            child: InkWell(
-                                splashColor: Colors.red,
-                                hoverColor: Colors.blue[600],
-                                onTap: () { 
-                                  showDialog(context: context, builder: (BuildContext context) => SingleQuestionView());
-                                },
-                                child: Container(
-                                    padding: const EdgeInsets.all(20.0),
-                                    child: Text(
-                                      questions[index]["name"],
-                                      textAlign: TextAlign.center,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    )))));
-                  },
-                  childCount: questions.length,
-                  ),
+                (BuildContext context, int index) {
+                  return new Card(
+                      margin: const EdgeInsets.all(10.0),
+                      clipBehavior: Clip.antiAlias,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15.0),
+                      ),
+                      child: Material(
+                          color: Colors.blue,
+                          child: InkWell(
+                              splashColor: Colors.red,
+                              hoverColor: Colors.blue[600],
+                              onTap: () {
+                                showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) =>
+                                        SingleQuestionView(
+                                            id: questions[index]["id"]));
+                              },
+                              child: Container(
+                                  padding: const EdgeInsets.all(20.0),
+                                  child: Text(
+                                    questions[index]["name"],
+                                    textAlign: TextAlign.center,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  )))));
+                },
+                childCount: questions.length,
+              ),
             );
           }),
       Positioned(
         bottom: 20,
         right: 20,
         child: FloatingActionButton(
-          onPressed: () => showDialog(context: context, builder: (BuildContext context) => AddQuestionView(widget.collection)),
+          onPressed: () => showDialog(
+              context: context,
+              builder: (BuildContext context) =>
+                  AddQuestionView(widget.collection)),
           tooltip: 'Add Question',
           child: Icon(Icons.add),
         ),

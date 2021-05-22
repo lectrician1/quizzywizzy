@@ -4,14 +4,15 @@ import 'package:quizzywizzy/widgets/body_template.dart';
 
 class SingleQuestionView extends StatelessWidget {
   final String id;
-  SingleQuestionView() : id = "";
-  SingleQuestionView.id({@required this.id});
+  
+  SingleQuestionView({@required this.id});
+
   @override
   Widget build(BuildContext context) {
-    return BodyTemplate(
+    return Dialog(
         child: FutureBuilder<DocumentSnapshot>(
             future: FirebaseFirestore.instance
-                .doc("/questions/47bSFU9INGhMIUHlp1Ev")
+                .doc("/questions/$id")
                 .get(),
             builder: (BuildContext context,
                 AsyncSnapshot<DocumentSnapshot> snapshot) {
@@ -26,7 +27,7 @@ class SingleQuestionView extends StatelessWidget {
                 return Column(
                   children: [
                     SizedBox(height: 20),
-                    Text(snapshot.data.data()["name"],
+                    Text((snapshot.data.data() as Map)["name"],
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 40,
@@ -35,8 +36,13 @@ class SingleQuestionView extends StatelessWidget {
                     ListView.builder(
                       shrinkWrap: true,
                       itemCount: 4,
-                      itemBuilder: (context, index) => Padding(padding: EdgeInsets.symmetric(vertical: 20), child: ElevatedButton(onPressed: () {}, child: Text(snapshot.data.data()["answers"][index]["answer"]))),),
-                    
+                      itemBuilder: (context, index) => Padding(
+                          padding: EdgeInsets.symmetric(vertical: 20),
+                          child: ElevatedButton(
+                              onPressed: () {},
+                              child: Text((snapshot.data.data() as Map)["answers"][index]
+                                  ["answer"]))),
+                    ),
                   ],
                 );
               }

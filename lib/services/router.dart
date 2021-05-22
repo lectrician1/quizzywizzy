@@ -245,9 +245,6 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
         case View.questions:
           addPage(StudySetView(collection: _curr.views[i]["reference"]), pages);
           break;
-        case View.question:
-          addPage(SingleQuestionView(), pages);
-          break;
         case View.notFound:
           addPage(RouteNotFoundView(name: Uri.base.toString()), pages);
           break;

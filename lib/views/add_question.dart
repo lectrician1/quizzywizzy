@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 /// This is the stateful widget that the main application instantiates.
 class AddQuestionView extends StatefulWidget {
-  CollectionReference collection;
+  final CollectionReference collection;
   AddQuestionView(this.collection);
 
   @override
@@ -18,19 +18,23 @@ class _AddQuestionViewState extends State<AddQuestionView> {
     "answers": [],
   };
 
-  void _submit() {
+  void _submit() async {
     CollectionReference questions =
         FirebaseFirestore.instance.collection('questions');
 
-    questions
+    String questionID;
+    await questions
         .add(question)
-        .then((value) => print("Question Added"))
+        .then((value) {
+          print("Question Added");
+          questionID = value.id;
+        })
         .catchError((error) => print("Failed to add question: $error"));
 
     widget.collection
         .doc("5hHxF5dpGE8flf375FCY")
         .update({
-          "questions": FieldValue.arrayUnion([{"name": question["name"], "rating": 1}])
+          "questions": FieldValue.arrayUnion([{"name": question["name"], "rating": 1, "id": questionID}])
         })
         .then((value) => print("Question Added to List"))
         .catchError((error) => print("Failed to add question to list: $error"));
