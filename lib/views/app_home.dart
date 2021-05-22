@@ -51,7 +51,7 @@ class AppHomeView extends StatelessWidget {
                             .map((docSnapshot) {
                               Map doc = docSnapshot.data();
                               return SelectionCell(
-                                  icon: Icons.ac_unit,
+                                  image: Icon(Icons.ac_unit),
                                   text: doc["name"],
                                   type: doc.containsKey("questions")
                                       ? (doc["questions"] ? 0 : 1)
