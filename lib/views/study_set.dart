@@ -65,7 +65,7 @@ class _StudySetViewState extends State<StudySetView> {
 
             /// Compile all questions from docs into one [List]
             snapshot.data.docs.forEach((DocumentSnapshot document) {
-              document.data()["questions"].forEach((question) {
+              (document.data() as Map)["questions"].forEach((question) {
                 questions.add(question);
               });
             });
@@ -91,7 +91,6 @@ class _StudySetViewState extends State<StudySetView> {
                                 splashColor: Colors.red,
                                 hoverColor: Colors.blue[600],
                                 onTap: () { 
-                                  widget.delegate.pushTemp(["questions", "1" /*questions[index]["id"]*/]); 
                                   showDialog(context: context, builder: (BuildContext context) => SingleQuestionView());
                                 },
                                 child: Container(
@@ -111,7 +110,7 @@ class _StudySetViewState extends State<StudySetView> {
         bottom: 20,
         right: 20,
         child: FloatingActionButton(
-          onPressed: () => showDialog(context: context, builder: (BuildContext context) => AddQuestionView()),
+          onPressed: () => showDialog(context: context, builder: (BuildContext context) => AddQuestionView(widget.collection)),
           tooltip: 'Add Question',
           child: Icon(Icons.add),
         ),

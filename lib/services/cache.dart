@@ -29,10 +29,7 @@ Future<dynamic> getViews(List hierarchy) async {
 
           try {
             query = await views[level]["reference"]
-                .get(GetOptions(source: Source.cache));
-            if (query == null)
-              query = views[level]["reference"]
-                  .get(GetOptions(source: Source.server));
+                .get(/*GetOptions(source: Source.cache)*/);
           } catch (e) {
             print(e);
             query = views[level]["reference"]

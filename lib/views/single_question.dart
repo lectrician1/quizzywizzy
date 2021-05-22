@@ -7,6 +7,6 @@ class SingleQuestionView extends StatelessWidget {
   SingleQuestionView.id({@required this.id});
   @override
   Widget build(BuildContext context) {
-    return BodyTemplate(child: Text("Single Question"));
+    return Dialog(child: Text("Single Question"));
   }
 }

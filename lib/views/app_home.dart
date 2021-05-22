@@ -19,7 +19,7 @@ class AppHomeView extends StatelessWidget {
   Widget build(BuildContext context) {
     return BodyTemplate(
         child: FutureBuilder<QuerySnapshot>(
-            future: collection.get(GetOptions(source: Source.cache)),
+            future: collection.get(/* GetOptions(source: Source.cache)*/),
             builder:
                 (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
               /// If error
@@ -29,7 +29,7 @@ class AppHomeView extends StatelessWidget {
 
               /// Snapshot retreived so render
               if (snapshot.connectionState == ConnectionState.done) {
-                print(snapshot.data.metadata.isFromCache);
+                print(snapshot.data.docs);
                 return ListView(
                   shrinkWrap: true,
                   children: [
