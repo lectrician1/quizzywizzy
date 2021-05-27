@@ -24,8 +24,10 @@ class StudySetView extends StatefulWidget {
 class _StudySetViewState extends State<StudySetView> {
   Stream<QuerySnapshot> snapshots;
   Sort selectedSort;
-  List questions;
+  // List questions;
+  List path;
 
+  /*
   void sort() {
     switch (selectedSort) {
       case Sort.ratingHigh:
@@ -36,18 +38,27 @@ class _StudySetViewState extends State<StudySetView> {
         break;
     }
   }
+  */
 
   /// Needed because [widget.collection.snapshots()] can't be called outside of a function
   @override
   void initState() {
     super.initState();
-    snapshots = widget.collection.snapshots();
+
+    path = widget.collection.path.split('/');
+
+    Query query = FirebaseFirestore.instance.collection("questions");
+
+    for (int i = 1; i < path.length; i + 2) {
+      query = query.where(path[i]);
+    }
+    snapshots = query.limit(10).snapshots();
   }
 
+  @override
   Widget build(BuildContext context) {
     return BodyTemplate(
         child: Stack(fit: StackFit.expand, children: [
-      /// StreamBuilder that runs every time the question list is changed
       StreamBuilder<QuerySnapshot>(
           stream: snapshots,
           builder:
@@ -60,90 +71,93 @@ class _StudySetViewState extends State<StudySetView> {
               return LoadingView();
             }
 
-            /// Reset list for new set of questions from DB
-            questions = [];
+            // Maintain the current sort, so sort the new list of questions
+            //sort();
 
-            /// Compile all questions from docs into one [List]
-            snapshot.data.docs.forEach((DocumentSnapshot document) {
-              (document.data() as Map)["questions"].forEach((question) {
-                questions.add(question);
-              });
-            });
-
-            /// Maintain the current sort, so sort the new list of questions
-            sort();
-
-            /// Return list
-            ///
-            /// Is custom in case ever needs reordering back or other features
-            return new ListView.custom(
+            // Return list
+            //
+            // Is custom in case ever needs reordering back or other features
+            return ListView.custom(
               childrenDelegate: SliverChildBuilderDelegate(
                 (BuildContext context, int index) {
-                  return new Card(
+                  return Card(
                       margin: const EdgeInsets.all(10.0),
                       clipBehavior: Clip.antiAlias,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(15.0),
                       ),
-                      child: Material(
-                          color: Colors.blue,
-                          child: InkWell(
-                              splashColor: Colors.red,
-                              hoverColor: Colors.blue[600],
-                              onTap: () {
-                                showDialog(
-                                    context: context,
-                                    builder: (BuildContext context) =>
-                                        SingleQuestionView(
-                                            id: questions[index]["id"]));
-                              },
-                              child: Container(
-                                  padding: const EdgeInsets.all(20.0),
-                                  child: Text(
-                                    questions[index]["name"],
-                                    textAlign: TextAlign.center,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  )))));
+                      child: ListTile(
+                        tileColor: Colors.blue,
+                        title: Container(
+                            padding: const EdgeInsets.all(20.0),
+                            child: Text(
+                              snapshot.data.docs[index]["name"],
+                              textAlign: TextAlign.center,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            )),
+                        hoverColor: Colors.blue[600],
+                        onTap: () {
+                          showDialog(
+                              context: context,
+                              builder: (BuildContext context) =>
+                                  SingleQuestionView(
+                                      reference:
+                                          snapshot.data.docs[index].reference));
+                        },
+                        trailing: IconButton(
+                          icon: Icon(Icons.remove),
+                          onPressed: () {
+                            snapshot.data.docs[index].reference
+                                .delete()
+                                .then((value) => print("Question Removed"))
+                                .catchError((error) =>
+                                    print("Failed to remove: $error"));
+                          },
+                        ),
+                      ));
                 },
-                childCount: questions.length,
+                childCount: snapshot.data.docs.length,
               ),
             );
           }),
+      /*
+              Positioned(
+                  bottom: 20,
+                  left: 20,
+                  child: PopupMenuButton<Sort>(
+                      icon: Icon(Icons.sort),
+                      itemBuilder: (BuildContext context) =>
+                          <PopupMenuEntry<Sort>>[
+                            const PopupMenuItem<Sort>(
+                              value: Sort.ratingHigh,
+                              child: Text('Rating High to Low'),
+                            ),
+                            const PopupMenuItem<Sort>(
+                              value: Sort.ratingLow,
+                              child: Text('Rating Low to High'),
+                            )
+                          ],
+                      onSelected: (Sort selected) {
+                        /// Set the state to rebuild the list with the new sort
+                        setState(() {
+                          selectedSort = selected;
+                          sort();
+                        });
+                      })) */
       Positioned(
         bottom: 20,
         right: 20,
         child: FloatingActionButton(
-          onPressed: () => showDialog(
-              context: context,
-              builder: (BuildContext context) =>
-                  AddQuestionView(widget.collection)),
+          onPressed: () {
+            showDialog(
+                context: context,
+                builder: (BuildContext context) => AddQuestionView(path));
+          },
           tooltip: 'Add Question',
           child: Icon(Icons.add),
         ),
-      ),
-      Positioned(
-          bottom: 20,
-          left: 20,
-          child: PopupMenuButton<Sort>(
-              icon: Icon(Icons.sort),
-              itemBuilder: (BuildContext context) => <PopupMenuEntry<Sort>>[
-                    const PopupMenuItem<Sort>(
-                      value: Sort.ratingHigh,
-                      child: Text('Rating High to Low'),
-                    ),
-                    const PopupMenuItem<Sort>(
-                      value: Sort.ratingLow,
-                      child: Text('Rating Low to High'),
-                    )
-                  ],
-              onSelected: (Sort selected) {
-                /// Set the state to rebuild the list with the new sort
-                setState(() {
-                  selectedSort = selected;
-                  sort();
-                });
-              }))
+      )
     ]));
   }
 }
