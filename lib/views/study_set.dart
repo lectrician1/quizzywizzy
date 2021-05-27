@@ -11,11 +11,11 @@ import 'package:quizzywizzy/widgets/body_template.dart';
 enum Sort { ratingHigh, ratingLow }
 
 class StudySetView extends StatefulWidget {
-  final CollectionReference collection;
+  final DocumentReference questionsPage;
 
   final AppRouterDelegate delegate = Get.find<AppRouterDelegate>();
 
-  StudySetView({@required this.collection});
+  StudySetView({@required this.questionsPage});
 
   @override
   _StudySetViewState createState() => _StudySetViewState();
@@ -45,14 +45,22 @@ class _StudySetViewState extends State<StudySetView> {
   void initState() {
     super.initState();
 
-    path = widget.collection.path.split('/');
+    path = widget.questionsPage.path.split('/');
 
     Query query = FirebaseFirestore.instance.collection("questions");
 
-    for (int i = 1; i < path.length; i + 2) {
-      query = query.where(path[i]);
+    int j = 0;
+    for (int i = 1; i < path.length; i += 2) {
+      query = query.where(collectionNames[j], isEqualTo: path[i]);
+      j++;
     }
     snapshots = query.limit(10).snapshots();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    snapshots.drain();
   }
 
   @override

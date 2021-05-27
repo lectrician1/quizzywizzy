@@ -61,6 +61,7 @@ Future<dynamic> getViews(List hierarchy) async {
                 views.add({
                   "view": View.questions,
                   "reference": views[level]["reference"]
+                    .doc(query.docs[i].id)
                 });
               }
 

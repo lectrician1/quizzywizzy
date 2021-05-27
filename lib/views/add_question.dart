@@ -15,9 +15,9 @@ class _AddQuestionViewState extends State<AddQuestionView> {
   final GlobalKey<FormState> _formKey = GlobalKey();
 
   var questionData = {
-    "author": '',
+    //"author": '',
     "date": Timestamp(0, 0),
-    "question": '',
+    //"question": '',
     "answers": [],
   };
 
@@ -25,7 +25,7 @@ class _AddQuestionViewState extends State<AddQuestionView> {
   void initState() {
     super.initState();
     int j = 0;
-    for (int i = 1; i < widget.path.length; i + 2) {
+    for (int i = 1; i < widget.path.length; i += 2) {
       questionData[collectionNames[j]] = widget.path[i];
       j++;
     }
