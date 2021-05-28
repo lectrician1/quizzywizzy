@@ -23,12 +23,12 @@ class AppHomeView extends StatelessWidget {
             future: collection.get(/* GetOptions(source: Source.cache)*/),
             builder:
                 (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-              /// If error
+              // If error
               if (snapshot.hasError) {
                 return Text("Something went wrong");
               }
 
-              /// Snapshot retreived so render
+              // Snapshot retreived so render
               if (snapshot.connectionState == ConnectionState.done) {
                 print(snapshot.data.docs);
                 return ListView(

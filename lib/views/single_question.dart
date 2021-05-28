@@ -28,7 +28,7 @@ class SingleQuestionView extends StatelessWidget {
                     return Column(
                       children: [
                         SizedBox(height: 20),
-                        Text(snapshot.data.data()["name"],
+                        Text((snapshot.data.data() as Map)["name"],
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 40,
@@ -41,7 +41,7 @@ class SingleQuestionView extends StatelessWidget {
                               padding: EdgeInsets.symmetric(vertical: 20),
                               child: ElevatedButton(
                                   onPressed: () {},
-                                  child: Text(snapshot.data.data()["answers"]
+                                  child: Text((snapshot.data.data() as Map)["answers"]
                                       [index]["answer"]))),
                         ),
                       ],

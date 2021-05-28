@@ -8,25 +8,23 @@ class BodyTemplate extends StatelessWidget {
   final Widget child;
   BodyTemplate(
       {this.title = Constants.title,
-      // constraintWidth
       this.constraintWidth = 1150,
       @required this.child});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: NavigationBar(
+        body: NavigationBar(
       title: title,
       constraintWidth: constraintWidth,
       child: SafeArea(
         child: Scrollbar(
           child: Align(
             alignment: Alignment.topCenter,
-            child: 
-                Container(
-                  constraints: BoxConstraints(maxWidth: constraintWidth),
-                  child: child,
-                ),
+            child: Container(
+              constraints: BoxConstraints(maxWidth: constraintWidth),
+              child: child,
+            ),
           ),
         ),
       ),
