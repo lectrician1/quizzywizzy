@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:quizzywizzy/services/routing_constants.dart';
 
 /// This is the stateful widget that the main application instantiates.
 class AddQuestionView extends StatefulWidget {
-  final CollectionReference collection;
-  AddQuestionView(this.collection);
+  final List<String> path;
+  AddQuestionView(this.path);
 
   @override
   _AddQuestionViewState createState() => _AddQuestionViewState();
@@ -13,31 +14,30 @@ class AddQuestionView extends StatefulWidget {
 class _AddQuestionViewState extends State<AddQuestionView> {
   final GlobalKey<FormState> _formKey = GlobalKey();
 
-  var question = {
-    "name": '',
+  var questionData = {
+    //"author": '',
+    "date": Timestamp(0, 0),
+    //"question": '',
     "answers": [],
   };
 
+  @override
+  void initState() {
+    super.initState();
+    int j = 0;
+    for (int i = 1; i < widget.path.length; i += 2) {
+      questionData[collectionNames[j]] = widget.path[i];
+      j++;
+    }
+  }
+
   void _submit() async {
-    CollectionReference questions =
-        FirebaseFirestore.instance.collection('questions');
-
-    String questionID;
-    await questions
-        .add(question)
-        .then((value) {
-          print("Question Added");
-          questionID = value.id;
-        })
-        .catchError((error) => print("Failed to add question: $error"));
-
-    widget.collection
-        .doc("5hHxF5dpGE8flf375FCY")
-        .update({
-          "questions": FieldValue.arrayUnion([{"name": question["name"], "rating": 1, "id": questionID}])
-        })
-        .then((value) => print("Question Added to List"))
-        .catchError((error) => print("Failed to add question to list: $error"));
+    FirebaseFirestore.instance
+        .collection('questions')
+        .add(questionData)
+        .then((question) {
+      print("Question Added");
+    }).catchError((error) => print("Failed to add question: $error"));
   }
 
   @override
@@ -62,7 +62,7 @@ class _AddQuestionViewState extends State<AddQuestionView> {
                           }
                           return null;
                         },
-                        onSaved: (value) => question['name'] = value,
+                        onSaved: (value) => questionData['name'] = value,
                       )
                     ] +
                     List.filled(
@@ -81,8 +81,9 @@ class _AddQuestionViewState extends State<AddQuestionView> {
                               }
                               return null;
                             },
-                            onSaved: (value) => (question['answers'] as List)
-                                .add({"answer": value}),
+                            onSaved: (value) =>
+                                (questionData['answers'] as List)
+                                    .add({"answer": value}),
                           ))
                         ])) +
                     [
@@ -94,6 +95,10 @@ class _AddQuestionViewState extends State<AddQuestionView> {
                             // the form is invalid.
                             if (_formKey.currentState.validate()) {
                               _formKey.currentState.save();
+
+                              questionData["date"] =
+                                  Timestamp.fromDate(DateTime.now());
+
                               // Process data.
                               _submit();
                               Navigator.of(context).pop();
