@@ -25,7 +25,7 @@ Future<dynamic> getViews(List hierarchy) async {
         /// Check each given level of the hierarchy to see
         /// if it has a valid page (Firestore document)
         while (level < hierarchy.length - 1) {
-          QuerySnapshot query;
+          QuerySnapshot? query;
 
           try {
             query = await views[level]["reference"]
@@ -36,7 +36,7 @@ Future<dynamic> getViews(List hierarchy) async {
                 .get(GetOptions(source: Source.server));
           }
 
-          print("Is from cache? ${query.metadata.isFromCache}");
+          print("Is from cache? ${query!.metadata.isFromCache}");
 
           /// If document has been found for this level
           bool foundLevel = false;
@@ -47,7 +47,7 @@ Future<dynamic> getViews(List hierarchy) async {
           /// Check each document in the level if it has the url of the next level.
           /// That means the level is a valid page.
           while (i < query.docs.length) {
-            Map<String, dynamic> doc = query.docs[i].data();
+            Map<String, dynamic> doc = query.docs[i].data() as Map<String, dynamic>;
 
             /// If the url segment equals the doc url.
             if (hierarchy[level + 1] == doc["url"]) {

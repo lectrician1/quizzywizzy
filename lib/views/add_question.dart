@@ -4,7 +4,7 @@ import 'package:quizzywizzy/services/routing_constants.dart';
 
 /// This is the stateful widget that the main application instantiates.
 class AddQuestionView extends StatefulWidget {
-  final List<String> path;
+  final List<String>? path;
   AddQuestionView(this.path);
 
   @override
@@ -25,8 +25,8 @@ class _AddQuestionViewState extends State<AddQuestionView> {
   void initState() {
     super.initState();
     int j = 0;
-    for (int i = 1; i < widget.path.length; i += 2) {
-      questionData[collectionNames[j]] = widget.path[i];
+    for (int i = 1; i < widget.path!.length; i += 2) {
+      questionData[collectionNames[j]] = widget.path![i];
       j++;
     }
   }
@@ -37,7 +37,7 @@ class _AddQuestionViewState extends State<AddQuestionView> {
         .add(questionData)
         .then((question) {
       print("Question Added");
-    }).catchError((error) => print("Failed to add question: $error"));
+    });
   }
 
   @override
@@ -56,13 +56,13 @@ class _AddQuestionViewState extends State<AddQuestionView> {
                         decoration: const InputDecoration(
                           hintText: 'Question description',
                         ),
-                        validator: (String value) {
+                        validator: (String? value) {
                           if (value == null || value.isEmpty) {
                             return 'Please enter some text';
                           }
                           return null;
                         },
-                        onSaved: (value) => questionData['name'] = value,
+                        onSaved: (value) => questionData['name'] = value ?? '',
                       )
                     ] +
                     List.filled(
@@ -75,7 +75,7 @@ class _AddQuestionViewState extends State<AddQuestionView> {
                             decoration: const InputDecoration(
                               hintText: 'Answer',
                             ),
-                            validator: (String value) {
+                            validator: (String? value) {
                               if (value == null || value.isEmpty) {
                                 return 'Please enter some text';
                               }
@@ -93,8 +93,8 @@ class _AddQuestionViewState extends State<AddQuestionView> {
                           onPressed: () {
                             // Validate will return true if the form is valid, or false if
                             // the form is invalid.
-                            if (_formKey.currentState.validate()) {
-                              _formKey.currentState.save();
+                            if (_formKey.currentState!.validate()) {
+                              _formKey.currentState!.save();
 
                               questionData["date"] =
                                   Timestamp.fromDate(DateTime.now());

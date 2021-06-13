@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 class SingleQuestionView extends StatelessWidget {
   final DocumentReference reference;
 
-  SingleQuestionView({@required this.reference});
+  SingleQuestionView({required this.reference});
 
   @override
   Widget build(BuildContext context) {
@@ -23,12 +23,12 @@ class SingleQuestionView extends StatelessWidget {
 
                   // Snapshot retreived so render
                   if (snapshot.connectionState == ConnectionState.done) {
-                    print(snapshot.data.metadata.isFromCache);
+                    print(snapshot.data!.metadata.isFromCache);
                     //print(snapshot.data.data()["answers"][0]["answer"]);
                     return Column(
                       children: [
                         SizedBox(height: 20),
-                        Text((snapshot.data.data() as Map)["name"],
+                        Text((snapshot.data!.data() as Map)["name"],
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 40,
@@ -41,7 +41,7 @@ class SingleQuestionView extends StatelessWidget {
                               padding: EdgeInsets.symmetric(vertical: 20),
                               child: ElevatedButton(
                                   onPressed: () {},
-                                  child: Text((snapshot.data.data() as Map)["answers"]
+                                  child: Text((snapshot.data!.data() as Map)["answers"]
                                       [index]["answer"]))),
                         ),
                       ],

@@ -9,7 +9,7 @@ class BodyTemplate extends StatelessWidget {
   BodyTemplate(
       {this.title = Constants.title,
       this.constraintWidth = 1150,
-      @required this.child});
+      required this.child});
 
   @override
   Widget build(BuildContext context) {

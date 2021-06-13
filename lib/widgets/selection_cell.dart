@@ -7,16 +7,16 @@ class SelectionCell extends StatefulWidget {
   final double width;
   final double height;
   final int type;
-  final String text;
+  final String? text;
   final Function onTap;
   final Widget image;
   SelectionCell(
-      {@required this.text,
-      @required this.image,
+      {required this.text,
+      required this.image,
       this.width = 250,
       this.height = 250,
-      @required this.type,
-      @required this.onTap});
+      required this.type,
+      required this.onTap});
   @override
   _SelectionCellState createState() => _SelectionCellState(
       text: text,
@@ -31,17 +31,17 @@ class _SelectionCellState extends State<SelectionCell> {
   final double width;
   final double height;
   final int type;
-  final String text;
+  final String? text;
   final Function onTap;
   final Widget image;
   bool hovered = false;
   _SelectionCellState(
-      {@required this.text,
-      @required this.image,
-      @required this.width,
-      @required this.height,
-      @required this.type,
-      @required this.onTap});
+      {required this.text,
+      required this.image,
+      required this.width,
+      required this.height,
+      required this.type,
+      required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +51,7 @@ class _SelectionCellState extends State<SelectionCell> {
         height: height,
         decoration: BoxDecoration(borderRadius: BorderRadius.circular(15.0)),
         child: GestureDetector(
-            onTap: onTap,
+            onTap: onTap as void Function()?,
             child: MouseRegion(
               cursor: SystemMouseCursors.click,
               onEnter: (e) => setState(() => hovered = true),
@@ -76,7 +76,7 @@ class _SelectionCellState extends State<SelectionCell> {
                       flex: 1,
                       child: Container(
                           margin: EdgeInsets.symmetric(horizontal: 30),
-                          child: Text(text,
+                          child: Text(text!,
                               textAlign: TextAlign.center,
                               style: TextStyle(fontSize: 20, height: 1.35))),
                     ),
@@ -88,23 +88,23 @@ class _SelectionCellState extends State<SelectionCell> {
 }
 
 class TilePainter extends CustomPainter {
-  final Color fillColor;
+  final Color? fillColor;
   final Color strokeColor;
   final double elevation;
   final double strokeWidth;
   final int type;
   final bool hovered;
   TilePainter(
-      {@required this.type,
-      @required this.fillColor,
-      @required this.strokeColor,
-      @required this.strokeWidth,
-      @required this.elevation,
-      @required this.hovered});
+      {required this.type,
+      required this.fillColor,
+      required this.strokeColor,
+      required this.strokeWidth,
+      required this.elevation,
+      required this.hovered});
   @override
   void paint(Canvas canvas, Size size) {
     double borderRadius = 15;
-    Paint fillPaint = new Paint()..color = fillColor;
+    Paint fillPaint = new Paint()..color = fillColor!;
     Paint strokePaint = new Paint()
       ..color = strokeColor
       ..style = PaintingStyle.stroke

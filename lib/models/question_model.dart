@@ -12,27 +12,27 @@ class QuestionModel {
   final int answer;
   final List<String> explanations;
   QuestionModel(
-      {@required this.type,
-      @required this.questionText,
-      @required this.choices,
-      @required this.answer,
-      @required this.explanations})
+      {required this.type,
+      required this.questionText,
+      required this.choices,
+      required this.answer,
+      required this.explanations})
       : assert(choices.length == explanations.length),
         assert(answer < choices.length);
   
   QuestionModel.multipleChoice(
-      {@required this.questionText,
-      @required this.choices,
-      @required this.answer,
-      @required this.explanations})
+      {required this.questionText,
+      required this.choices,
+      required this.answer,
+      required this.explanations})
       : assert(choices.length == explanations.length),
         assert(answer < choices.length),
         this.type = QuestionType.multipleChoice;
   
   QuestionModel.freeResponse({
-      @required this.questionText,
-      @required String answer,
-      @required String explanation})
+      required this.questionText,
+      required String answer,
+      required String explanation})
       : this.answer = 0,
       this.type = QuestionType.freeResponse,
       this.choices = [answer],

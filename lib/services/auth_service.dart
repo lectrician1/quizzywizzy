@@ -19,11 +19,11 @@ class AuthService {
     if (_auth.currentUser != null || _googleSignIn.currentUser != null)
       await signOutWithGoogle();
     final GoogleSignInAccount googleSignInAccount =
-        await _googleSignIn.signIn();
+        await (_googleSignIn.signIn() as FutureOr<GoogleSignInAccount>);
     final GoogleSignInAuthentication googleSignInAuthentication =
         await googleSignInAccount.authentication;
     if (_googleSignIn.currentUser != null)
-      await validateEmail(_googleSignIn.currentUser.email);
+      await validateEmail(_googleSignIn.currentUser!.email);
 
     final AuthCredential credential = GoogleAuthProvider.credential(
       accessToken: googleSignInAuthentication.accessToken,
@@ -31,9 +31,9 @@ class AuthService {
     );
     final UserCredential authResult =
         await _auth.signInWithCredential(credential);
-    IdTokenResult token = await authResult.user.getIdTokenResult();
-    if (token.claims.containsKey("role"))
-      _user.createInstance(authAccount: authResult.user, googleAccount: googleSignInAccount, role: token.claims["role"]);
+    IdTokenResult token = await authResult.user!.getIdTokenResult();
+    if (token.claims!.containsKey("role"))
+      _user.createInstance(authAccount: authResult.user, googleAccount: googleSignInAccount, role: token.claims!["role"]);
     else {
       _user.createInstance(authAccount: authResult.user, googleAccount: googleSignInAccount, role: "student");
       print("Failed to get role of user, defaulting to student");
@@ -58,10 +58,10 @@ class AuthService {
     if (_auth.currentUser != null) {
       await _googleSignIn.signInSilently();
       if (_googleSignIn.currentUser != null) {
-        await validateEmail(_googleSignIn.currentUser.email);
-        IdTokenResult token = await _auth.currentUser.getIdTokenResult();
-        if (token.claims.containsKey("role"))
-          _user.createInstance(authAccount: _auth.currentUser, googleAccount: _googleSignIn.currentUser, role: token.claims["role"]);
+        await validateEmail(_googleSignIn.currentUser!.email);
+        IdTokenResult token = await _auth.currentUser!.getIdTokenResult();
+        if (token.claims!.containsKey("role"))
+          _user.createInstance(authAccount: _auth.currentUser, googleAccount: _googleSignIn.currentUser, role: token.claims!["role"]);
         else {
           _user.createInstance(authAccount: _auth.currentUser, googleAccount: _googleSignIn.currentUser, role: "student");
           print("Failed to get role of user, defaulting to student");

@@ -38,9 +38,9 @@ class NavigationBar extends StatelessWidget {
   final double constraintWidth;
   final AppRouterDelegate delegate = Get.find<AppRouterDelegate>();
   NavigationBar(
-      {@required this.title,
-      @required this.child,
-      @required this.constraintWidth});
+      {required this.title,
+      required this.child,
+      required this.constraintWidth});
 
   @override
   Widget build(BuildContext context) {
@@ -175,7 +175,7 @@ class NavigationBar extends StatelessWidget {
           style: _NavTheme.rightButtonStyle);
     return PopupMenuButton(
         tooltip: "Show Profile Menu",
-        onSelected: (value) {
+        onSelected: (dynamic value) {
           switch (value) {
             case "Sign Out":
               AuthService.signOutWithGoogle().catchError((e) {

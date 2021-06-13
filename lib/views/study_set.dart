@@ -11,21 +11,21 @@ import 'package:quizzywizzy/widgets/body_template.dart';
 enum Sort { ratingHigh, ratingLow }
 
 class StudySetView extends StatefulWidget {
-  final DocumentReference questionsPage;
+  final DocumentReference? questionsPage;
 
   final AppRouterDelegate delegate = Get.find<AppRouterDelegate>();
 
-  StudySetView({@required this.questionsPage});
+  StudySetView({required this.questionsPage});
 
   @override
   _StudySetViewState createState() => _StudySetViewState();
 }
 
 class _StudySetViewState extends State<StudySetView> {
-  Stream<QuerySnapshot> snapshots;
-  Sort selectedSort;
+  Stream<QuerySnapshot>? snapshots;
+  Sort? selectedSort;
   // List questions;
-  List path;
+  List? path;
 
   /*
   void sort() {
@@ -45,13 +45,13 @@ class _StudySetViewState extends State<StudySetView> {
   void initState() {
     super.initState();
 
-    path = widget.questionsPage.path.split('/');
+    path = widget.questionsPage!.path.split('/');
 
     Query query = FirebaseFirestore.instance.collection("questions");
 
     int j = 0;
-    for (int i = 1; i < path.length; i += 2) {
-      query = query.where(collectionNames[j], isEqualTo: path[i]);
+    for (int i = 1; i < path!.length; i += 2) {
+      query = query.where(collectionNames[j], isEqualTo: path![i]);
       j++;
     }
     snapshots = query.limit(10).snapshots();
@@ -60,7 +60,7 @@ class _StudySetViewState extends State<StudySetView> {
   @override
   void dispose() {
     super.dispose();
-    snapshots.drain();
+    snapshots!.drain();
   }
 
   @override
@@ -99,7 +99,7 @@ class _StudySetViewState extends State<StudySetView> {
                         title: Container(
                             padding: const EdgeInsets.all(20.0),
                             child: Text(
-                              snapshot.data.docs[index]["name"],
+                              snapshot.data!.docs[index]["name"],
                               textAlign: TextAlign.center,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -111,12 +111,12 @@ class _StudySetViewState extends State<StudySetView> {
                               builder: (BuildContext context) =>
                                   SingleQuestionView(
                                       reference:
-                                          snapshot.data.docs[index].reference));
+                                          snapshot.data!.docs[index].reference));
                         },
                         trailing: IconButton(
                           icon: Icon(Icons.remove),
                           onPressed: () {
-                            snapshot.data.docs[index].reference
+                            snapshot.data!.docs[index].reference
                                 .delete()
                                 .then((value) => print("Question Removed"))
                                 .catchError((error) =>
@@ -125,7 +125,7 @@ class _StudySetViewState extends State<StudySetView> {
                         ),
                       ));
                 },
-                childCount: snapshot.data.docs.length,
+                childCount: snapshot.data!.docs.length,
               ),
             );
           }),
@@ -160,7 +160,7 @@ class _StudySetViewState extends State<StudySetView> {
           onPressed: () {
             showDialog(
                 context: context,
-                builder: (BuildContext context) => AddQuestionView(path));
+                builder: (BuildContext context) => AddQuestionView(path as List<String>?));
           },
           tooltip: 'Add Question',
           child: Icon(Icons.add),

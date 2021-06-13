@@ -27,17 +27,17 @@ class AppStack extends ChangeNotifier {
   /// The URL as a list
   /// 
   /// e.g. [courses, AP Calculus BC, Unit 1]
-  List<String> _hierarchy;
+  List<String?>? _hierarchy;
 
   /// Stores the hierarchy of the previous page visited
   /// to go back to that page after a [pop] of a temporary page.
-  List<String> _lastHierarchy;
+  List<String?>? _lastHierarchy;
 
   List<Map<String, dynamic>> views;
 
-  List<String> get hierarchy => _hierarchy;
+  List<String?>? get hierarchy => _hierarchy;
 
-  AppStack({@required List<String> hierarchy})
+  AppStack({required List<String?> hierarchy})
       : _hierarchy = hierarchy,
 
         /// This is needed for now since [_getPages] is called when
@@ -49,7 +49,7 @@ class AppStack extends ChangeNotifier {
   /// Set a new hierarchy
   ///
   /// Used to set the requested url
-  void setStack(List<String> otherHierarchy) {
+  void setStack(List<String?> otherHierarchy) {
     _hierarchy = List.from(otherHierarchy);
     notifyListeners();
   }
@@ -58,7 +58,7 @@ class AppStack extends ChangeNotifier {
   /// 
   /// Used to copy between [_requested] and [_curr]
   void copyStack(AppStack stack) {
-    _hierarchy = List.from(stack._hierarchy);
+    _hierarchy = List.from(stack._hierarchy!);
     views = List.from(stack.views);
   }
 
@@ -88,25 +88,25 @@ class AppStack extends ChangeNotifier {
     ///
     /// And "/questions" has no page and we want to go to home ("/")
     else if (views.last["view"] == View.question)
-      hierarchy.clear();
+      hierarchy!.clear();
 
     /// Otherwise, remove last from hierarchy,
     /// which removes last from url,
     /// which removes the top view
     else
-      hierarchy.removeLast();
+      hierarchy!.removeLast();
 
     notifyListeners();
   }
 
   /// Add a page to the hierarchy and view stack
-  void push(String pathSegment) {
-    _hierarchy.add(pathSegment);
+  void push(String? pathSegment) {
+    _hierarchy!.add(pathSegment);
     notifyListeners();
   }
 
   /// Push a temporary hierarchy (url) but no view
-  void pushTemp(List<String> newHierarchy) {
+  void pushTemp(List<String?> newHierarchy) {
     _lastHierarchy = _hierarchy;
     _hierarchy = newHierarchy;
     notifyListeners();
@@ -166,7 +166,7 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
   /// sets starting hierarchy but doesn't initialize [_requested].
   /// It's pretty stupid.
   bool canPop() {
-    return _requested.hierarchy.length > 0;
+    return _requested.hierarchy!.length > 0;
   }
 
   /// [_loading]-dependent [AppStack] method reimplementations
@@ -178,13 +178,13 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
   }
 
   /// Add a page to the hierarchy and view stack
-  void push(String pathSegment) {
+  void push(String? pathSegment) {
     if (_loading) return;
     _requested.push(pathSegment);
   }
 
   /// Push a temporary hierarchy (url) but no view
-  void pushTemp(List<String> newHierarchy) {
+  void pushTemp(List<String?> newHierarchy) {
     if (_loading) return;
     _requested.pushTemp(newHierarchy);
   }
@@ -209,7 +209,7 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
 
     /// If not a [tempPush], get and set new [views] for [_requested].
     if (!listEquals(_requested._lastHierarchy, _curr.hierarchy)) {
-      _requested.views = await getViews(_requested.hierarchy);
+      _requested.views = await (getViews(_requested.hierarchy!));
     }
 
     /// Copy [_requested.hierarchy] and [_requested.views] to [_curr] for 
@@ -264,7 +264,7 @@ class AppRouterDelegate extends RouterDelegate<AppStack>
   @override
   Future<void> setNewRoutePath(AppStack stack) async {
     if (_loading) return;
-    if (stack.hierarchy.length > 0) _requested.setStack(stack.hierarchy);
+    if (stack.hierarchy!.length > 0) _requested.setStack(stack.hierarchy!);
   }
 }
 
@@ -273,14 +273,14 @@ class AppRouteInformationParser extends RouteInformationParser<AppStack> {
   @override
   Future<AppStack> parseRouteInformation(
       RouteInformation routeInformation) async {
-    final uri = Uri.parse(routeInformation.location);
+    final uri = Uri.parse(routeInformation.location!);
     return AppStack(hierarchy: uri.pathSegments);
   }
 
   @override
   RouteInformation restoreRouteInformation(AppStack page) {
     RouteInformation route;
-    route = RouteInformation(location: getRoute(page.hierarchy));
+    route = RouteInformation(location: getRoute(page.hierarchy!));
     return route;
   }
 }

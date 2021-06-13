@@ -82,7 +82,7 @@ class SignInDialogDomain extends StatelessWidget {
 class SignInDialogWindow extends StatelessWidget {
   final Widget top;
   final Widget body;
-  SignInDialogWindow({@required this.top, @required this.body});
+  SignInDialogWindow({required this.top, required this.body});
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -165,7 +165,7 @@ class SignInDialogButton extends StatefulWidget {
 
 class _SignInDialogButtonState extends State<SignInDialogButton>
     with TickerProviderStateMixin {
-  AnimationController _anim;
+  late AnimationController _anim;
   @override
   void initState() {
     super.initState();
@@ -228,7 +228,7 @@ class _SignInDialogButtonState extends State<SignInDialogButton>
 
 class SignInButtonTemplate extends StatelessWidget {
   final Widget body;
-  SignInButtonTemplate({@required this.body});
+  SignInButtonTemplate({required this.body});
   @override
   Widget build(BuildContext context) {
     return Column(
