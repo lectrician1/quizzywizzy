@@ -14,7 +14,7 @@ class BodyTemplate extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: NavigationBar(
+        body: new NavigationBar2(
       title: title,
       constraintWidth: constraintWidth,
       child: SafeArea(

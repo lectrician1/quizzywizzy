@@ -32,12 +32,12 @@ class _NavTheme {
   );
 }
 
-class NavigationBar extends StatelessWidget {
+class NavigationBar2 extends StatelessWidget {
   final Widget child;
   final String title;
   final double constraintWidth;
   final AppRouterDelegate delegate = Get.find<AppRouterDelegate>();
-  NavigationBar(
+  NavigationBar2(
       {required this.title,
       required this.child,
       required this.constraintWidth});

@@ -15,9 +15,8 @@ import 'package:url_strategy/url_strategy.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  await FirebaseFirestore.instance.enablePersistence();
   await AuthService.signInSilently();
-
-  FirebaseFirestore firestore = FirebaseFirestore.instance;
 
   setPathUrlStrategy();
 
